@@ -20,7 +20,9 @@ build = GOOS=$(1) GOARCH=$(2) go build $(BUILD_FLAGS) -o build/$(binary)$(3) ./c
 tar = cd build && tar -czf $(1)_$(2).tar.gz $(binary)$(3) && rm $(binary)$(3)
 zip = cd build && zip $(1)_$(2).zip $(binary)$(3) && rm $(binary)$(3)
 
-.PHONY: build frontend dev watch format lint clean
+source := $(shell find . -type f -name '*.go')
+
+.PHONY: build frontend dev generate-traffic watch format lint clean
 
 # Build for the native platform
 build: frontend build/pewview
@@ -28,6 +30,14 @@ build: frontend build/pewview
 # Run a development server for the frontend
 dev: frontend
 	python3 -m http.server --directory ./build/frontend 8080
+
+# Generate NetFlow v5 traffic using nflow-generator
+# To install:
+# go get github.com/Sirupsen/logrus
+# go get github.com/jessevdk/go-flags
+# go get github.com/nerdalert/nflow-generator
+generate-traffic:
+	nflow-generator -t 127.0.0.1 -p 2057
 
 # Watch the frontend for changes and automatically rebuild it
 watch-frontend:
