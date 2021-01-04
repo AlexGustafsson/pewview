@@ -1,4 +1,6 @@
-const DEBUG = true;
+import * as solar from "./include/solar-calculator"
+import * as THREE from "./include/three"
+import Globe from "./include/globe.gl"
 
 // Gen random data
 const N = 20;
@@ -11,6 +13,7 @@ const arcsData = [...Array(N).keys()].map(() => ({
 }));
 
 const VELOCITY = 9; // minutes per frame
+const DEBUG = true;
 
 function calculateSunPosition(date) {
   const day = new Date(date).setUTCHours(0, 0, 0, 0);
@@ -27,16 +30,16 @@ const globe = Globe();
 
 const globeMaterial = globe.globeMaterial();
 globeMaterial.bumpScale = 10;
-new THREE.TextureLoader().load("./include/earth-water.png", texture => {
+new THREE.TextureLoader().load("./static/earth-water.png", texture => {
   globeMaterial.specularMap = texture;
   globeMaterial.specular = new THREE.Color("grey");
   globeMaterial.shininess = 15;
 });
 
 // Setup visuals
-globe.backgroundImageUrl("./include/night-sky.png")
-  .globeImageUrl("./include/earth-night.jpg")
-  .bumpImageUrl("./include/earth-topology.png")
+globe.backgroundImageUrl("./static/night-sky.png")
+  .globeImageUrl("./static/earth-night.jpg")
+  .bumpImageUrl("./static/earth-topology.png")
   .backgroundColor("#000000")
   .showAtmosphere(true);
 
@@ -63,9 +66,11 @@ globe(document.getElementById("globe"))
 setTimeout(() => {
   const scene = globe.scene();
 
-  const axes = new THREE.AxisHelper(150)
-  axes.geometry = new THREE.Geometry().fromBufferGeometry(axes.geometry);
-  scene.add(axes);
+  if (DEBUG) {
+    const axes = new THREE.AxisHelper(150)
+    axes.geometry = new THREE.Geometry().fromBufferGeometry(axes.geometry);
+    scene.add(axes);
+  }
 
   // TODO: set directional light to point towards the light mesh, to make it more realistic
   const lightMesh = scene.children.find(object => object.type === "Mesh");
