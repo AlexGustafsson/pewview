@@ -1,3 +1,5 @@
+const DEBUG = true;
+
 // Gen random data
 const N = 20;
 const arcsData = [...Array(N).keys()].map(() => ({
@@ -35,7 +37,8 @@ new THREE.TextureLoader().load("./include/earth-water.png", texture => {
 globe.backgroundImageUrl("./include/night-sky.png")
   .globeImageUrl("./include/earth-night.jpg")
   .bumpImageUrl("./include/earth-topology.png")
-  .backgroundColor("#000000");
+  .backgroundColor("#000000")
+  .showAtmosphere(true);
 
 // Setup random arcs
 globe.arcsData(arcsData)
@@ -44,8 +47,6 @@ globe.arcsData(arcsData)
   .arcDashGap(() => Math.random())
   .arcDashAnimateTime(() => Math.random() * 4000 + 500);
 
-// Setup solar position
-// const texture = new THREE.TextureLoader().load( "./include/earth-day.jpg" );
 globe.tilesData([solarTile])
   .tileLng(tile => tile.position.longitude)
   .tileLat(tile => tile.position.latitude)
@@ -53,20 +54,38 @@ globe.tilesData([solarTile])
   .tileWidth(180)
   .tileHeight(180)
   .tileUseGlobeProjection(false)
-  // .tileMaterial(() => new THREE.MeshLambertMaterial({ map: texture, opacity: 0.3, transparent: true }))
-  .tileMaterial(() => new THREE.MeshLambertMaterial({ color: "#FFFF00", opacity: 0.3, transparent: true }))
+  .tileMaterial(() => new THREE.MeshLambertMaterial({ color: "#FFFF00", opacity: 0.1, transparent: true }))
   .tilesTransitionDuration(0);
 
 // Render
 globe(document.getElementById("globe"))
 
 setTimeout(() => {
-  const directionalLight = globe.scene().children.find(object => object.type === "DirectionalLight");
-  if (directionalLight)
-    directionalLight.position.set(1, 1, 1);
+  const scene = globe.scene();
 
-  // TODO: set directioal light to point towards the light mesh, to make it more realistic
-  const lightMesh = globe.scene().children.find(object => object.type === "Mesh");
-  if (lightMesh)
+  const axes = new THREE.AxisHelper(150)
+  axes.geometry = new THREE.Geometry().fromBufferGeometry(axes.geometry);
+  scene.add(axes);
+
+  // TODO: set directional light to point towards the light mesh, to make it more realistic
+  const lightMesh = scene.children.find(object => object.type === "Mesh");
+  if (lightMesh) {
+    // const radius = lightMesh.parameters.radius;
+    lightMesh.geometry.computeBoundingBox();
     console.log(lightMesh);
+    lightMesh.visible = false;
+  }
+
+  const directionalLight = scene.children.find(object => object.type === "DirectionalLight");
+  if (directionalLight) {
+    console.log(directionalLight);
+    directionalLight.position.set(150, 150, 150);
+    directionalLight.intensity = 1;
+    if (DEBUG) {
+      const helper = new THREE.DirectionalLightHelper(directionalLight, 150);
+      scene.add(helper);
+    }
+  }
+
+  console.log(scene);
 });
