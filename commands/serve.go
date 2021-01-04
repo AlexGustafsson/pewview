@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"runtime"
+	"net"
 	"github.com/AlexGustafsson/pewview/utils"
 	goflow "github.com/cloudflare/goflow/v3/utils"
 	log "github.com/sirupsen/logrus"
@@ -22,14 +23,44 @@ func serveCommand(context *cli.Context) error {
 	enableSFlow := context.Bool("sflow")
 	sFlowPort := context.Int("sflow.port")
 
+	enableGeoLite := context.Bool("geoip.geolite")
+	geoLitePath := context.String("geoip.geolite.path")
+
 	if !enableIPFIX && !enableNetFlow && !enableSFlow {
 		return fmt.Errorf("No consumer was enabled")
 	}
 
-	return serve(1, address, enableIPFIX, ipfixPort, enableNetFlow, netFlowPort, enableSFlow, sFlowPort)
+	if !enableGeoLite {
+		return fmt.Errorf("No GeoIP service enabled")
+	}
+
+	if enableGeoLite && geoLitePath == "" {
+		return fmt.Errorf("Expected geoip.geolite.path to be set when GeoLite is enabled")
+	}
+
+	var geoIP utils.GeoIP
+
+	if enableGeoLite {
+		geolite := &utils.GeoLite{Database: nil}
+		err := geolite.Open(geoLitePath)
+		if err != nil {
+			log.Fatalf("Fatal error: could not open GeoLite2 database (%v)", err)
+		}
+		geoIP = geolite
+		defer geolite.Close()
+	}
+
+	return serve(1, address, enableIPFIX, ipfixPort, enableNetFlow, netFlowPort, enableSFlow, sFlowPort, geoIP)
 }
 
-func serve(workers int, address string, enableIPFIX bool, ipfixPort int, enableNetFlow bool, netFlowPort int, enableSFlow bool, sFlowPort int) error {
+func serve(workers int, address string, enableIPFIX bool, ipfixPort int, enableNetFlow bool, netFlowPort int, enableSFlow bool, sFlowPort int, geoIP utils.GeoIP) error {
+	ip := net.ParseIP("81.2.69.142")
+	city, err := geoIP.Lookup(ip)
+	if err != nil {
+		log.Errorf("Error: unable to get address from database (%v)", err)
+	}
+	log.Infof("Got address: %v", city.Name)
+
 	var transport goflow.Transport
 	transport = &utils.PewViewTransport{}
 

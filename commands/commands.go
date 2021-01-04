@@ -51,6 +51,15 @@ var Commands = []*cli.Command{
 				Usage: "Port to consume sFlow on",
 				Value: 6343,
 			},
+			&cli.BoolFlag{
+				Name: "geoip.geolite",
+				Usage: "Use GeoLite2 as a GeoIP database",
+				Value: false,
+			},
+			&cli.StringFlag{
+				Name: "geoip.geolite.path",
+				Usage: "Path to GeoLite2-City.mmdb",
+			},
 		},
 	},
 }
