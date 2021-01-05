@@ -22,20 +22,12 @@ func stringOrDefault(value string, defaultValue string) string {
 func (transport *PewViewTransport) Publish(messages []*flowmessage.FlowMessage) {
 	log.WithFields(log.Fields{"Type": "NetFlow"}).Debug("Handling incoming messages")
 	for _, message := range messages {
-		sourceAddress := message.SrcAddr
-		sourceLookup, err := transport.GeoIP.Lookup(sourceAddress)
+		pair, err := LookupPair(transport.GeoIP, message.SrcAddr, message.DstAddr)
 		if err != nil {
-			log.Errorf("Error: unable to get source address from database (%v)", err)
+			log.Errorf("Error: unable to get lookup pair from database (%v)", err)
 			continue
 		}
 
-		destinationAddress := message.DstAddr
-		destinationLookup, err := transport.GeoIP.Lookup(destinationAddress)
-		if err != nil {
-			log.Errorf("Error: unable to get destination address from database (%v)", err)
-			continue
-		}
-
-		log.Debugf("Consumed interaction %v, %v -> %v, %v", stringOrDefault(sourceLookup.CityName, "Unknown City Name"), stringOrDefault(sourceLookup.CountryName, "Unknown Country Name"), stringOrDefault(destinationLookup.CityName, "Unknown City Name"), stringOrDefault(destinationLookup.CountryName, "Unknown Country Name"))
+		log.Debugf("Consumed interaction %v, %v -> %v, %v", stringOrDefault(pair.Source.CityName, "Unknown City Name"), stringOrDefault(pair.Source.CountryName, "Unknown Country Name"), stringOrDefault(pair.Destination.CityName, "Unknown City Name"), stringOrDefault(pair.Destination.CountryName, "Unknown Country Name"))
 	}
 }

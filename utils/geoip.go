@@ -15,6 +15,12 @@ type LookupResult struct {
   AccuracyRadius uint16
 }
 
+// LookupResultPair is a source-destination pair of lookup results
+type LookupResultPair struct {
+  Source *LookupResult
+  Destination *LookupResult
+}
+
 // GeoIP is an interface for looking up IP addresses
 type GeoIP interface {
   // Lookup performs an IP lookup
@@ -89,4 +95,22 @@ func (database *GeoLite) Close() {
   if database.Reader != nil {
     database.Reader.Close()
   }
+}
+
+// LookupPair looks up two pairs at once
+func LookupPair(database GeoIP, source net.IP, destination net.IP) (*LookupResultPair, error) {
+  sourceResult, err := database.Lookup(source)
+  if err != nil {
+    return nil, err
+  }
+
+  destinationResult, err := database.Lookup(destination)
+  if err != nil {
+    return nil, err
+  }
+
+  return &LookupResultPair {
+    Source: sourceResult,
+    Destination: destinationResult,
+  }, nil
 }
