@@ -22,11 +22,16 @@ zip = cd build && zip $(1)_$(2).zip $(binary)$(3) && rm $(binary)$(3)
 
 source := $(shell find . -type f -name '*.go')
 
-.PHONY: build package frontend server dev generate-traffic windows darwin linux watch format lint clean
+.PHONY: help build package frontend server dev generate-traffic windows darwin linux watch format lint clean
+
+# Produce a short description of available make commands
+help:
+	pcregrep -Mo '^(#.*\n)+^[^# ]+:' Makefile | sed "s/^\([^# ]\+\):/> \1/g" | sed "s/^#\s\+\(.\+\)/\1/g" | GREP_COLORS='ms=1;34' grep -E --color=always '^>.*|$$' | GREP_COLORS='ms=1;37' grep -E --color=always '^[^>].*|$$'
 
 # Build for the native platform
 build: frontend build/pewview
 
+# Package for all platforms
 package: ./build/frontend.zip windows darwin linux
 
 # Run a development server for the frontend
