@@ -94,3 +94,15 @@ setTimeout(() => {
 
   console.log(scene);
 });
+
+
+console.log("Creating web socket");
+const socket = new WebSocket(`ws://${location.host}/ws`);
+
+socket.addEventListener("open", () => {
+  socket.send("Hello Server!");
+});
+
+socket.addEventListener("message", event => {
+  console.log("Message from server", event.data);
+});

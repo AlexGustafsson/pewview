@@ -23,6 +23,9 @@ func serveCommand(context *cli.Context) error {
 	enableGeoLite := context.Bool("geoip.geolite")
 	geoLitePath := context.String("geoip.geolite.path")
 
+	webRoot := context.String("web.root")
+	webPort := context.Int("web.port")
+
 	if !enableIPFIX && !enableNetFlow && !enableSFlow {
 		return fmt.Errorf("No consumer was enabled")
 	}
@@ -64,6 +67,9 @@ func serveCommand(context *cli.Context) error {
 		SFlowPort: sFlowPort,
 
 		GeoIP: geoIP,
+
+		WebRoot: webRoot,
+		WebPort: webPort,
 	}
 
 	return server.Start()

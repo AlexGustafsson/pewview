@@ -4,8 +4,10 @@ import (
 	goflow "github.com/cloudflare/goflow/v3/utils"
   log "github.com/sirupsen/logrus"
   "golang.org/x/sync/errgroup"
+  "github.com/gorilla/websocket"
   "context"
   "fmt"
+  "net/http"
 )
 
 // Server is the core PewView server
@@ -31,6 +33,10 @@ type Server struct {
   transport goflow.Transport
 
   GeoIP GeoIP
+
+  WebRoot string
+  WebPort int
+  upgrader *websocket.Upgrader
 }
 
 func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
@@ -42,8 +48,7 @@ func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
   errorGroup.Go(func() error {
     log.WithFields(log.Fields{"Type": "IPFIX"}).Infof("Listening on UDP %v:%v", server.Address, server.IPFIXPort)
 
-    err := server.ipfix.FlowRoutine(server.Workers, server.Address, server.IPFIXPort, false)
-    return err
+    return server.ipfix.FlowRoutine(server.Workers, server.Address, server.IPFIXPort, false)
   })
 }
 
@@ -55,8 +60,7 @@ func (server *Server) startNetFlow(errorGroup *errgroup.Group) {
 
   errorGroup.Go(func() error {
     log.WithFields(log.Fields{"Type": "NetFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.NetFlowPort)
-    err := server.netFlow.FlowRoutine(server.Workers, server.Address, server.NetFlowPort, false)
-    return err
+    return server.netFlow.FlowRoutine(server.Workers, server.Address, server.NetFlowPort, false)
   })
 }
 
@@ -68,8 +72,40 @@ func (server *Server) startSFlow(errorGroup *errgroup.Group) {
 
   errorGroup.Go(func() error {
     log.WithFields(log.Fields{"Type": "sFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.SFlowPort)
-    err := server.sFlow.FlowRoutine(server.Workers, server.Address, server.SFlowPort, false)
-    return err
+    return server.sFlow.FlowRoutine(server.Workers, server.Address, server.SFlowPort, false)
+  })
+}
+
+func (server *Server) serveWebSocket(response http.ResponseWriter, request *http.Request) {
+  log.WithFields(log.Fields{"Type": "Web"}).Debugf("upgrading incoming websocket")
+  connection, err := server.upgrader.Upgrade(response, request, nil)
+  if err != nil {
+    log.WithFields(log.Fields{"Type": "Web"}).Errorf("Error: could not upgrade connection: %v", err)
+    return
+  }
+  defer connection.Close()
+
+  log.WithFields(log.Fields{"Type": "Web"}).Debugf("sending message", err)
+  err = connection.WriteMessage(websocket.TextMessage, []byte("Hello, World!"))
+  if err != nil {
+    log.WithFields(log.Fields{"Type": "Web"}).Errorf("Error: could not send message: %v", err)
+  }
+}
+
+func (server *Server) startWeb(errorGroup *errgroup.Group) {
+  server.upgrader = &websocket.Upgrader{}
+
+  fileServer := http.FileServer(http.Dir(server.WebRoot))
+  http.Handle("/", fileServer)
+
+  http.HandleFunc("/ws", func (response http.ResponseWriter, request *http.Request) {
+    server.serveWebSocket(response, request)
+  })
+
+  errorGroup.Go(func() error {
+    log.WithFields(log.Fields{"Type": "Web"}).Infof("Listening on TCP %v:%v", server.Address, server.WebPort)
+    address := fmt.Sprintf("%v:%v", server.Address, server.WebPort)
+    return http.ListenAndServe(address, nil)
   })
 }
 
@@ -99,11 +135,13 @@ func (server *Server) Start() error {
     server.startSFlow(errorGroup)
   }
 
+  server.startWeb(errorGroup)
+
   // Wait for all consumers to be started, returns the first error (if any)
   err := errorGroup.Wait()
   if err != nil {
-    log.Errorf("Error: Unable to start consumers: %v", err)
-    return fmt.Errorf("unable to start consumers")
+    log.Errorf("Error: Unable to start server: %v", err)
+    return fmt.Errorf("unable to start server")
   }
 
   return nil
