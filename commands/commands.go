@@ -52,21 +52,21 @@ var Commands = []*cli.Command{
 				Value: 6343,
 			},
 			&cli.BoolFlag{
-				Name: "geoip.geolite",
+				Name:  "geoip.geolite",
 				Usage: "Use GeoLite2 as a GeoIP database",
 				Value: false,
 			},
 			&cli.StringFlag{
-				Name: "geoip.geolite.path",
+				Name:  "geoip.geolite.path",
 				Usage: "Path to GeoLite2-City.mmdb",
 			},
 			&cli.StringFlag{
-				Name: "web.root",
+				Name:  "web.root",
 				Usage: "The directory in which the UI lies",
 				Value: "./build/frontend",
 			},
 			&cli.IntFlag{
-				Name: "web.port",
+				Name:  "web.port",
 				Usage: "The port to use for web traffic (UI / API)",
 				Value: 8080,
 			},

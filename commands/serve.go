@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"runtime"
 	"github.com/AlexGustafsson/pewview/pewview"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"runtime"
 )
 
 func serveCommand(context *cli.Context) error {
@@ -58,13 +58,13 @@ func serveCommand(context *cli.Context) error {
 		Workers: 1,
 
 		EnableIPFIX: enableIPFIX,
-		IPFIXPort: ipfixPort,
+		IPFIXPort:   ipfixPort,
 
 		EnableNetFlow: enableNetFlow,
-		NetFlowPort: netFlowPort,
+		NetFlowPort:   netFlowPort,
 
 		EnableSFlow: enableSFlow,
-		SFlowPort: sFlowPort,
+		SFlowPort:   sFlowPort,
 
 		GeoIP: geoIP,
 

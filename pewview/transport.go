@@ -7,7 +7,7 @@ import (
 
 // Transport is a custom transport used for handling incoming messages
 type Transport struct {
-	GeoIP GeoIP
+	GeoIP  GeoIP
 	Server *Server
 }
 
