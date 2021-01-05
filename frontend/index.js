@@ -100,9 +100,18 @@ console.log("Creating web socket");
 const socket = new WebSocket(`ws://${location.host}/ws`);
 
 socket.addEventListener("open", () => {
+  console.log("Socket created");
   socket.send("Hello Server!");
 });
 
 socket.addEventListener("message", event => {
   console.log("Message from server", event.data);
 });
+
+socket.addEventListener("error", error => {
+  console.log("Socket error", error);
+})
+
+socket.addEventListener("close", () => {
+  console.log("Socket closed");
+})

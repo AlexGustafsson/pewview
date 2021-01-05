@@ -37,6 +37,7 @@ type Server struct {
   WebRoot string
   WebPort int
   upgrader *websocket.Upgrader
+  hub *Hub
 }
 
 func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
@@ -83,17 +84,15 @@ func (server *Server) serveWebSocket(response http.ResponseWriter, request *http
     log.WithFields(log.Fields{"Type": "Web"}).Errorf("Error: could not upgrade connection: %v", err)
     return
   }
-  defer connection.Close()
 
-  log.WithFields(log.Fields{"Type": "Web"}).Debugf("sending message", err)
-  err = connection.WriteMessage(websocket.TextMessage, []byte("Hello, World!"))
-  if err != nil {
-    log.WithFields(log.Fields{"Type": "Web"}).Errorf("Error: could not send message: %v", err)
-  }
+  client := RegisterClient(connection, server.hub)
+  client.send <- []byte("Hello, Client!")
 }
 
 func (server *Server) startWeb(errorGroup *errgroup.Group) {
   server.upgrader = &websocket.Upgrader{}
+  server.hub = NewHub()
+  go server.hub.Run()
 
   fileServer := http.FileServer(http.Dir(server.WebRoot))
   http.Handle("/", fileServer)
