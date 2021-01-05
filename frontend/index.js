@@ -2,18 +2,9 @@ import * as solar from "./include/solar-calculator"
 import * as THREE from "./include/three"
 import Globe from "./include/globe.gl"
 
-// Gen random data
-const N = 20;
-const arcsData = [...Array(N).keys()].map(() => ({
-  startLat: (Math.random() - 0.5) * 180,
-  startLng: (Math.random() - 0.5) * 360,
-  endLat: (Math.random() - 0.5) * 180,
-  endLng: (Math.random() - 0.5) * 360,
-  color: [["red", "white", "blue", "green"][Math.round(Math.random() * 3)], ["red", "white", "blue", "green"][Math.round(Math.random() * 3)]]
-}));
+const arcsData = []
 
-const VELOCITY = 9; // minutes per frame
-const DEBUG = true;
+const DEBUG = false;
 
 function calculateSunPosition(date) {
   const day = new Date(date).setUTCHours(0, 0, 0, 0);
@@ -105,7 +96,30 @@ socket.addEventListener("open", () => {
 });
 
 socket.addEventListener("message", event => {
-  console.log("Message from server", event.data);
+  try {
+    const message = JSON.parse(event.data)
+    if (
+      message.Source.Latitude === 0 ||
+      message.Source.Longitude === 0 ||
+      message.Destination.Latitude === 0 ||
+      message.Destination.Longitude === 0
+    ) {
+      console.warn("Got message without proper coordinates");
+      return;
+    }
+
+    console.log("Message from server", message);
+    arcsData.push({
+      startLat: message.Source.Latitude,
+      startLng: message.Source.Longitude,
+      endLat: message.Destination.Latitude,
+      endLng: message.Destination.Longitude,
+      color: [["red", "white", "blue", "green"][Math.round(Math.random() * 3)], ["red", "white", "blue", "green"][Math.round(Math.random() * 3)]]
+    });
+    globe.arcsData(arcsData);
+  } catch (error) {
+    console.error("Unable to parse message", event.data)
+  }
 });
 
 socket.addEventListener("error", error => {

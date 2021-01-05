@@ -8,6 +8,7 @@ import (
   "context"
   "fmt"
   "net/http"
+  "encoding/json"
 )
 
 // Server is the core PewView server
@@ -114,7 +115,10 @@ func (server *Server) Start() error {
     server.Workers = 1
   }
 
-  server.transport = &Transport{GeoIP: server.GeoIP}
+  server.transport = &Transport{
+    GeoIP: server.GeoIP,
+    Server: server,
+  }
 
   log.Info("Starting PewView")
 
@@ -143,5 +147,16 @@ func (server *Server) Start() error {
     return fmt.Errorf("unable to start server")
   }
 
+  return nil
+}
+
+// BroadcastPair broadcasts a pair to all connected clients
+func (server *Server) BroadcastPair(pair *LookupResultPair) error {
+  encodedPair, err := json.Marshal(pair)
+  if err != nil {
+    return err
+  }
+
+  server.hub.broadcast <- encodedPair
   return nil
 }

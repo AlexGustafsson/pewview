@@ -103,12 +103,12 @@ func (client *Client) write() {
       }
       response.Write(message)
 
-      // Send all queued messages in the current message
-      queuedMessages := len(client.send)
-      for i := 0; i < queuedMessages; i++ {
-        // response.Write(newline)
-        response.Write(<-client.send)
-      }
+      // // Send all queued messages in the current message
+      // queuedMessages := len(client.send)
+      // for i := 0; i < queuedMessages; i++ {
+      //   // response.Write(newline)
+      //   response.Write(<-client.send)
+      // }
 
       if err := response.Close(); err != nil {
         log.WithFields(log.Fields{"Type": "Web"}).Debugf("Error: unable to close response: %v", err)

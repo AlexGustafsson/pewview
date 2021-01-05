@@ -8,6 +8,7 @@ import (
 // Transport is a custom transport used for handling incoming messages
 type Transport struct {
 	GeoIP GeoIP
+	Server *Server
 }
 
 func stringOrDefault(value string, defaultValue string) string {
@@ -29,5 +30,9 @@ func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 		}
 
 		log.Debugf("Consumed interaction %v, %v -> %v, %v", stringOrDefault(pair.Source.CityName, "Unknown City Name"), stringOrDefault(pair.Source.CountryName, "Unknown Country Name"), stringOrDefault(pair.Destination.CityName, "Unknown City Name"), stringOrDefault(pair.Destination.CountryName, "Unknown Country Name"))
+		err = transport.Server.BroadcastPair(pair)
+		if err != nil {
+			log.Debugf("Error: unable to broadcast incoming pair", err)
+		}
 	}
 }
