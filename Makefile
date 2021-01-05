@@ -22,7 +22,7 @@ zip = cd build && zip $(1)_$(2).zip $(binary)$(3) && rm $(binary)$(3)
 
 source := $(shell find . -type f -name '*.go')
 
-.PHONY: build frontend dev generate-traffic watch format lint clean
+.PHONY: build frontend server dev generate-traffic watch format lint clean
 
 # Build for the native platform
 build: frontend build/pewview
@@ -55,6 +55,9 @@ format: $(source) Makefile
 # Lint Go code
 lint: $(source) Makefile
 	golint .
+
+# Build the server
+server: build/pewview
 
 # Build for the native platform. For cross-platform builds, see "package" below
 build/pewview: $(source) Makefile
