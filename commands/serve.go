@@ -41,7 +41,7 @@ func serveCommand(context *cli.Context) error {
 	var geoIP utils.GeoIP
 
 	if enableGeoLite {
-		geolite := &utils.GeoLite{Database: nil}
+		geolite := &utils.GeoLite{Reader: nil}
 		err := geolite.Open(geoLitePath)
 		if err != nil {
 			log.Fatalf("Fatal error: could not open GeoLite2 database (%v)", err)
@@ -55,11 +55,11 @@ func serveCommand(context *cli.Context) error {
 
 func serve(workers int, address string, enableIPFIX bool, ipfixPort int, enableNetFlow bool, netFlowPort int, enableSFlow bool, sFlowPort int, geoIP utils.GeoIP) error {
 	ip := net.ParseIP("81.2.69.142")
-	city, err := geoIP.Lookup(ip)
+	lookup, err := geoIP.Lookup(ip)
 	if err != nil {
 		log.Errorf("Error: unable to get address from database (%v)", err)
 	}
-	log.Infof("Got address: %v", city.Name)
+	log.Infof("Got address: %v: %v", lookup.CountryName, lookup.CityName)
 
 	var transport goflow.Transport
 	transport = &utils.PewViewTransport{}
