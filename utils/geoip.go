@@ -38,6 +38,20 @@ func (database *GeoLite) Open(path string) error {
   return nil
 }
 
+func unwrap(values map[string]string, key string) string {
+  value := ""
+  if values[key] == "" {
+    // Return the first key instead
+    for key := range values {
+      value = values[key]
+      break
+    }
+  } else {
+    value = values[key]
+  }
+  return value
+}
+
 // Lookup performs an IP lookup
 func (database *GeoLite) Lookup(ip net.IP) (*LookupResult, error) {
   var record struct {
@@ -61,9 +75,9 @@ func (database *GeoLite) Lookup(ip net.IP) (*LookupResult, error) {
   }
 
   return &LookupResult {
-    CountryName: record.Country.Names["en"],
+    CountryName: unwrap(record.Country.Names, "en"),
     CountryISOCode: record.Country.ISOCode,
-    CityName: record.City.Names["en"],
+    CityName: unwrap(record.City.Names, "en"),
     Latitude: record.Location.Latitude,
     Longitude: record.Location.Longitude,
     AccuracyRadius: record.Location.AccuracyRadius,

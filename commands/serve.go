@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"runtime"
-	"net"
 	"github.com/AlexGustafsson/pewview/utils"
 	goflow "github.com/cloudflare/goflow/v3/utils"
 	log "github.com/sirupsen/logrus"
@@ -54,15 +53,8 @@ func serveCommand(context *cli.Context) error {
 }
 
 func serve(workers int, address string, enableIPFIX bool, ipfixPort int, enableNetFlow bool, netFlowPort int, enableSFlow bool, sFlowPort int, geoIP utils.GeoIP) error {
-	ip := net.ParseIP("81.2.69.142")
-	lookup, err := geoIP.Lookup(ip)
-	if err != nil {
-		log.Errorf("Error: unable to get address from database (%v)", err)
-	}
-	log.Infof("Got address: %v: %v", lookup.CountryName, lookup.CityName)
-
 	var transport goflow.Transport
-	transport = &utils.PewViewTransport{}
+	transport = &utils.PewViewTransport{GeoIP: geoIP}
 
 	// Allow the runtime to span across multiple worker processes
 	runtime.GOMAXPROCS(runtime.NumCPU())
