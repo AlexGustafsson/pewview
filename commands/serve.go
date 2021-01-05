@@ -3,11 +3,9 @@ package commands
 import (
 	"fmt"
 	"runtime"
-	"github.com/AlexGustafsson/pewview/utils"
-	goflow "github.com/cloudflare/goflow/v3/utils"
+	"github.com/AlexGustafsson/pewview/pewview"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"sync"
 )
 
 func serveCommand(context *cli.Context) error {
@@ -37,10 +35,10 @@ func serveCommand(context *cli.Context) error {
 		return fmt.Errorf("Expected geoip.geolite.path to be set when GeoLite is enabled")
 	}
 
-	var geoIP utils.GeoIP
+	var geoIP pewview.GeoIP
 
 	if enableGeoLite {
-		geolite := &utils.GeoLite{Reader: nil}
+		geolite := &pewview.GeoLite{Reader: nil}
 		err := geolite.Open(geoLitePath)
 		if err != nil {
 			log.Fatalf("Fatal error: could not open GeoLite2 database (%v)", err)
@@ -49,81 +47,24 @@ func serveCommand(context *cli.Context) error {
 		defer geolite.Close()
 	}
 
-	return serve(1, address, enableIPFIX, ipfixPort, enableNetFlow, netFlowPort, enableSFlow, sFlowPort, geoIP)
-}
-
-func serve(workers int, address string, enableIPFIX bool, ipfixPort int, enableNetFlow bool, netFlowPort int, enableSFlow bool, sFlowPort int, geoIP utils.GeoIP) error {
-	var transport goflow.Transport
-	transport = &utils.PewViewTransport{GeoIP: geoIP}
-
 	// Allow the runtime to span across multiple worker processes
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	log.Info("Starting PewView")
+	server := &pewview.Server{
+		Address: address,
+		Workers: 1,
 
-	// IPFIX / NetFlow v9
-	ipfix := &goflow.StateNetFlow{
-		Transport: transport,
-		Logger:    log.StandardLogger(),
+		EnableIPFIX: enableIPFIX,
+		IPFIXPort: ipfixPort,
+
+		EnableNetFlow: enableNetFlow,
+		NetFlowPort: netFlowPort,
+
+		EnableSFlow: enableSFlow,
+		SFlowPort: sFlowPort,
+
+		GeoIP: geoIP,
 	}
 
-	// NetFlow v5
-	netflow := &goflow.StateNFLegacy{
-		Transport: transport,
-		Logger:    log.StandardLogger(),
-	}
-
-	sFlow := &goflow.StateSFlow{
-		Transport: transport,
-		Logger:    log.StandardLogger(),
-	}
-
-	wg := &sync.WaitGroup{}
-
-	// Initialize IPFIX / NetFlow v9
-	if enableIPFIX {
-		wg.Add(1)
-		go func() {
-			log.WithFields(log.Fields{"Type": "IPFIX"}).Infof("Listening on UDP %v:%v", address, ipfixPort)
-
-			err := ipfix.FlowRoutine(workers, address, ipfixPort, false)
-			if err != nil {
-				log.Fatalf("Fatal error: could not listen to UDP (%v)", err)
-			}
-			wg.Done()
-		}()
-	}
-
-	// Initialize NetFlow v5
-	if enableNetFlow {
-		wg.Add(1)
-		go func() {
-			log.WithFields(log.Fields{"Type": "NetFlow"}).Infof("Listening on UDP %v:%v", address, netFlowPort)
-
-			err := netflow.FlowRoutine(workers, address, netFlowPort, false)
-			if err != nil {
-				log.Fatalf("Fatal error: could not listen to UDP (%v)", err)
-			}
-			wg.Done()
-		}()
-	}
-
-	// Initialize sFlow
-	if enableSFlow {
-		wg.Add(1)
-		go func() {
-			log.WithFields(log.Fields{"Type": "sFlow"}).Infof("Listening on UDP %v:%v", address, sFlowPort)
-
-			err := sFlow.FlowRoutine(workers, address, sFlowPort, false)
-			if err != nil {
-				log.Fatalf("Fatal error: could not listen to UDP (%v)", err)
-			}
-			wg.Done()
-		}()
-	}
-
-	// Wait for all consumers to be initialized
-	wg.Wait()
-
-	return nil
+	return server.Start()
 }
