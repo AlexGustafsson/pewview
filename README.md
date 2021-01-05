@@ -130,3 +130,10 @@ make build
 ```
 
 _Note: due to a bug (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93082, https://bugs.llvm.org/show_bug.cgi?id=44406, https://openradar.appspot.com/radar?id=4952611266494464), clang is required when building for macOS. GCC cannot be used. Build the server like so: `CC=clang make server`._
+
+### Contributors
+
+This project was made possible by these two projects:
+
+* [Cloudflare's goflow](https://github.com/cloudflare/goflow) - used for consuming network traffic
+* [Vasco Asturiano's globe.gl](https://github.com/vasturiano/globe.gl) (and in turn Three.js) - used for rendering the globe in the frontend
