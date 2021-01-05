@@ -22,10 +22,12 @@ zip = cd build && zip $(1)_$(2).zip $(binary)$(3) && rm $(binary)$(3)
 
 source := $(shell find . -type f -name '*.go')
 
-.PHONY: build frontend server dev generate-traffic watch format lint clean
+.PHONY: build package frontend server dev generate-traffic windows darwin linux watch format lint clean
 
 # Build for the native platform
 build: frontend build/pewview
+
+package: ./build/frontend.zip windows darwin linux
 
 # Run a development server for the frontend
 dev: frontend
@@ -69,6 +71,9 @@ frontend: ./build/frontend/index.min.js $(frontend_target_resources)
 	cp -r ./frontend/static ./build/frontend
 	cp ./frontend/index.html ./build/frontend/
 	cp ./frontend/index.css ./build/frontend/
+
+./build/frontend.zip: frontend
+	zip ./build/frontend.zip -r ./build/frontend
 
 ./build/frontend/index.min.js: ./frontend/index.js $(wildcard ./frontend/include/*.js)
 	mkdir -p ./build/frontend
