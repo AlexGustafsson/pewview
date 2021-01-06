@@ -85,31 +85,43 @@ Usage: pewview serve [options] [arguments]
 Start the server
 
 Options:
-   --address value             Address to listen on
-   --ipfix                     Enable IPFIX / NetFlow v9 (default: false)
-   --ipfix.port value          Port to consume IPFIX / NetFlow v9 on (default: 2055)
-   --netflow                   Enable NetFlow v5 (default: false)
-   --netflow.port value        Port to consume NetFlow v5 on (default: 2056)
-   --sflow                     Enable sFlow (default: false)
-   --sflow.port value          Port to consume sFlow on (default: 6343)
-   --geoip.geolite             Use GeoLite2 as a GeoIP database (default: false)
-   --geoip.geolite.path value  Path to GeoLite2-City.mmdb
-   --web.root value            The directory in which the UI lies (default: "./build/frontend")
-   --web.port value            The port to use for web traffic (UI / API) (default: 8080)
+   --address value                  Address to listen on
+   --ipfix                          Enable IPFIX / NetFlow v9 (default: false)
+   --ipfix.port value               Port to consume IPFIX / NetFlow v9 on (default: 2055)
+   --netflow                        Enable NetFlow v5 (default: false)
+   --netflow.port value             Port to consume NetFlow v5 on (default: 2056)
+   --sflow                          Enable sFlow (default: false)
+   --sflow.port value               Port to consume sFlow on (default: 6343)
+   --geoip.geolite                  Use GeoLite2 as a GeoIP database (default: false)
+   --geoip.geolite.path value       Path to GeoLite2-City.mmdb
+   --geoip.ipgeolocation            Use ipgeolocation.io as a GeoIP database (default: false)
+   --geoip.ipgeolocation.key value  API key for ipgeolocation.io
+   --web.root value                 The directory in which the UI lies (default: "./build/frontend")
+   --web.port value                 The port to use for web traffic (UI / API) (default: 8080)
+   --help, -h                       show help (default: false)
 ```
 
 ## IP Geolocation configuration
 <a name="geoip"></a>
 
-### Maxmind's GeoLite2 (free, offline)
+### Maxmind's GeoLite2 (free, paid, offline)
 
-1. Create a free account on https://dev.maxmind.com/geoip/geoip2/geolite2/
+1. Create a free account on [https://dev.maxmind.com/geoip/geoip2/geolite2/](https://dev.maxmind.com/geoip/geoip2/geolite2/)
 2. Log in and go to the Download Files page under GeoIP2 / GeoLite 2
 3. Right click on Download GZIP of the GeoLite2 City row and copy the link
 4. Download the file using `wget --output-document geoip.gzip "<copied path>"`
 5. Untar the file using `mkdir -p data/GeoLite && tar --strip=1 --directory data/GeoLite -xzvf geoip.gzip`
 
 For evaluation, you can download test data from [maxmind/MaxMind-DB](https://github.com/maxmind/MaxMind-DB/blob/c46c33c3c598c648013e2aa7458f8492f4ecfcce/test-data/GeoIP2-City-Test.mmdb) and follow the same procedures as above.
+
+Specify `--geoip.geolite --geoip.geolite.path ./data/GeoLite/GeoLite2-City.mmdb` when starting PewView.
+
+### ipgeolocation.io (free, paid, online)
+
+1. Create an account on [https://ipgeolocation.io](https://ipgeolocation.io)
+2. Log in to get your API key
+
+Specify `--geoip.ipgeolocation --geoip.ipgeolocation.key <key>` when starting PewView.
 
 ## Contributing
 <a name="contributing"></a>

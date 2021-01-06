@@ -60,6 +60,15 @@ var Commands = []*cli.Command{
 				Name:  "geoip.geolite.path",
 				Usage: "Path to GeoLite2-City.mmdb",
 			},
+			&cli.BoolFlag{
+				Name:  "geoip.ipgeolocation",
+				Usage: "Use ipgeolocation.io as a GeoIP database",
+				Value: false,
+			},
+			&cli.StringFlag{
+				Name:  "geoip.ipgeolocation.key",
+				Usage: "API key for ipgeolocation.io",
+			},
 			&cli.StringFlag{
 				Name:  "web.root",
 				Usage: "The directory in which the UI lies",

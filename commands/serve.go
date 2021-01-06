@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/AlexGustafsson/pewview/geoip"
 	"github.com/AlexGustafsson/pewview/pewview"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -23,6 +24,9 @@ func serveCommand(context *cli.Context) error {
 	enableGeoLite := context.Bool("geoip.geolite")
 	geoLitePath := context.String("geoip.geolite.path")
 
+	enableIPGeolocation := context.Bool("geoip.ipgeolocation")
+	ipGeolocationKey := context.String("geoip.ipgeolocation.key")
+
 	webRoot := context.String("web.root")
 	webPort := context.Int("web.port")
 
@@ -30,24 +34,29 @@ func serveCommand(context *cli.Context) error {
 		return fmt.Errorf("No consumer was enabled")
 	}
 
-	if !enableGeoLite {
-		return fmt.Errorf("No GeoIP service enabled")
-	}
-
-	if enableGeoLite && geoLitePath == "" {
-		return fmt.Errorf("Expected geoip.geolite.path to be set when GeoLite is enabled")
-	}
-
-	var geoIP pewview.GeoIP
+	var geoIP geoip.GeoIP
 
 	if enableGeoLite {
-		geolite := &pewview.GeoLite{Reader: nil}
+		if geoLitePath == "" {
+			return fmt.Errorf("Expected geoip.geolite.path to be set when GeoLite is enabled")
+		}
+
+		geolite := &geoip.GeoLite{Reader: nil}
 		err := geolite.Open(geoLitePath)
 		if err != nil {
 			log.Fatalf("Fatal error: could not open GeoLite2 database (%v)", err)
 		}
 		geoIP = geolite
 		defer geolite.Close()
+	} else if enableIPGeolocation {
+		if ipGeolocationKey == "" {
+			return fmt.Errorf("Expected geoip.geolocation.key to be set when ipgeolocation.io is enabled")
+		}
+
+		ipGeolocation := &geoip.IPGeolocation{APIKey: ipGeolocationKey}
+		geoIP = ipGeolocation
+	} else {
+		return fmt.Errorf("No GeoIP service enabled")
 	}
 
 	// Allow the runtime to span across multiple worker processes

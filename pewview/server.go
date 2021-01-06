@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/AlexGustafsson/pewview/geoip"
 	goflow "github.com/cloudflare/goflow/v3/utils"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -33,7 +34,7 @@ type Server struct {
 
 	transport goflow.Transport
 
-	GeoIP GeoIP
+	GeoIP geoip.GeoIP
 
 	WebRoot  string
 	WebPort  int
@@ -151,7 +152,7 @@ func (server *Server) Start() error {
 }
 
 // BroadcastPair broadcasts a pair to all connected clients
-func (server *Server) BroadcastPair(pair *LookupResultPair) error {
+func (server *Server) BroadcastPair(pair *geoip.LookupResultPair) error {
 	encodedPair, err := json.Marshal(pair)
 	if err != nil {
 		return err

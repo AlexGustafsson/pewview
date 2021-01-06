@@ -44,7 +44,7 @@ dev: frontend
 # go get github.com/jessevdk/go-flags
 # go get github.com/nerdalert/nflow-generator
 generate-traffic:
-	nflow-generator -t 127.0.0.1 -p 2057
+	nflow-generator -t 127.0.0.1 -p 2056
 
 # Watch the frontend for changes and automatically rebuild it
 watch-frontend:
