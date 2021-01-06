@@ -69,6 +69,11 @@ var Commands = []*cli.Command{
 				Name:  "geoip.ipgeolocation.key",
 				Usage: "API key for ipgeolocation.io",
 			},
+			&cli.BoolFlag{
+				Name:  "geoip.ipapi",
+				Usage: "Use ip-api.com as a GeoIP database",
+				Value: false,
+			},
 			&cli.StringFlag{
 				Name:  "web.root",
 				Usage: "The directory in which the UI lies",

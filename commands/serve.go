@@ -27,6 +27,8 @@ func serveCommand(context *cli.Context) error {
 	enableIPGeolocation := context.Bool("geoip.ipgeolocation")
 	ipGeolocationKey := context.String("geoip.ipgeolocation.key")
 
+	enableIPAPI := context.Bool("geoip.ipapi")
+
 	webRoot := context.String("web.root")
 	webPort := context.Int("web.port")
 
@@ -55,6 +57,9 @@ func serveCommand(context *cli.Context) error {
 
 		ipGeolocation := &geoip.IPGeolocation{APIKey: ipGeolocationKey}
 		geoIP = ipGeolocation
+	} else if enableIPAPI {
+		ipAPI := &geoip.IPAPI{}
+		geoIP = ipAPI
 	} else {
 		return fmt.Errorf("No GeoIP service enabled")
 	}
