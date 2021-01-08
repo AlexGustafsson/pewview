@@ -83,7 +83,30 @@ setTimeout(() => {
     }
   }
 
-  console.log(scene);
+  const controls = globe.controls();
+  controls.maxDistance = 1000;
+  controls.minDistance = 200;
+  controls.zoomSpeed = 1;
+  controls.autoRotateSpeed = 0.2;
+  controls.autoRotate = true;
+  let timer = null;
+  controls.addEventListener('start', () => {
+    controls.autoRotate = false;
+  });
+  controls.addEventListener('end', () => {
+    if (timer)
+      clearTimeout(timer);
+    timer = setTimeout(() => {
+      controls.autoRotate = true;
+    }, 3000);
+  });
+
+  if (DEBUG) {
+    console.log("Globals scene, controls and camera set")
+    window.scene = scene;
+    window.controls = controls;
+    window.camera = camera;
+  }
 });
 
 
