@@ -43,3 +43,13 @@ func LookupPair(database GeoIP, source net.IP, destination net.IP) (*LookupResul
 		Destination: destinationResult,
 	}, nil
 }
+
+// HasCoordinates returns true if the coordinates are non-zero
+func (result *LookupResult) HasCoordinates() bool {
+	return result.Latitude != 0 && result.Longitude != 0
+}
+
+// HasCoordinates returns true if the coordinates are non-zero
+func (pair *LookupResultPair) HasCoordinates() bool {
+	return pair.Source.HasCoordinates() && pair.Destination.HasCoordinates()
+}
