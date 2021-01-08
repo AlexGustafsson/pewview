@@ -2,6 +2,7 @@ import Globe from "./globe"
 import Client from "./client"
 
 const DEBUG = false;
+const DEMO_DATA = true;
 
 const POINTS_OF_INTEREST = [
   {latitude: 50.510986, longitude: 16.049161}, // "Europe"
@@ -34,6 +35,37 @@ function main() {
 
     window.globe = globe;
     window.client = client;
+  }
+
+  if (DEMO_DATA) {
+    function randomColor() {
+      const colors = ["#ba1e68", "#5643fd", "#7659fe", "#fcfbfe"];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function randomLatitude() {
+      return (Math.random() - 0.5) * 180;
+    }
+
+    function randomLongitude() {
+      return (Math.random() - 0.5) * 360;
+    }
+
+    const randomData = Array(30).fill(null).map(() => ({
+      source: {
+        latitude: randomLatitude(),
+        longitude: randomLongitude(),
+      },
+      destination: {
+        latitude: randomLatitude(),
+        longitude: randomLongitude(),
+      },
+      colors: [randomColor(), randomColor(), randomColor()],
+      animateTime: Math.random() * 4000 + 500,
+      gap: Math.random(),
+      length: Math.random(),
+    }));
+    globe.push(...randomData)
   }
 }
 

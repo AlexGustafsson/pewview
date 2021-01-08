@@ -52,11 +52,18 @@ export default class Client extends SimpleEventTarget {
 
     console.log("Message from server", message);
     this.dispatchEvent("data", {
-      startLat: message.Source.Latitude,
-      startLng: message.Source.Longitude,
-      endLat: message.Destination.Latitude,
-      endLng: message.Destination.Longitude,
-      color: [["red", "white", "blue", "green"][Math.round(Math.random() * 3)], ["red", "white", "blue", "green"][Math.round(Math.random() * 3)]]
+      source: {
+        latitude: message.Source.Latitude,
+        longitude: message.Source.Longitude,
+      },
+      destination: {
+        latitude: message.Destination.Latitude,
+        longitude: message.Destination.Longitude,
+      },
+      color: [["red", "white", "blue", "green"][Math.round(Math.random() * 3)], ["red", "white", "blue", "green"][Math.round(Math.random() * 3)]],
+      animateTime: Math.random() * 4000 + 500,
+      gap: Math.random(),
+      length: Math.random()
     });
   }
 }

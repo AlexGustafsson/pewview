@@ -19,6 +19,7 @@ export default class Globe extends SimpleEventTarget {
   constructor() {
     super();
     this.globe = ThreeGlobe();
+    this.data = [];
 
     // Configure bump map
     const globeMaterial = this.globe.globeMaterial();
@@ -37,11 +38,15 @@ export default class Globe extends SimpleEventTarget {
       .showAtmosphere(true);
 
     // Setup arcs to render
-    this.globe.arcsData([])
-      .arcColor("color")
-      .arcDashLength(() => Math.random())
-      .arcDashGap(() => Math.random())
-      .arcDashAnimateTime(() => Math.random() * 4000 + 500);
+    this.globe.arcsData(this.data)
+      .arcStartLat(context => context.source.latitude)
+      .arcStartLng(context => context.source.longitude)
+      .arcEndLat(context => context.destination.latitude)
+      .arcEndLng(context => context.destination.longitude)
+      .arcColor(context => context.colors)
+      .arcDashLength(context => context.length)
+      .arcDashGap(context => context.gap)
+      .arcDashAnimateTime(context => context.animateTime);
 
     // Setup the daytime hemisphere
     const now = new Date()
@@ -64,6 +69,16 @@ export default class Globe extends SimpleEventTarget {
 
     this.mounted = false;
     this.waitingForMount = [];
+  }
+
+  push(...data) {
+    this.data.push(...data);
+    this.globe.arcsData(this.data);
+  }
+
+  clear() {
+    this.data.clear();
+    this.globe.arcsData(this.data);
   }
 
   performAdditionalSetup() {
