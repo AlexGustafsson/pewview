@@ -10,6 +10,11 @@ import {
 import {default as ThreeGlobe} from "./include/globe.gl"
 import SimpleEventTarget from "./simple-event-target"
 
+const POINT_OF_INTEREST_ANIMATION_DURATION = 2 * 1000;
+const POINT_OF_INTEREST_INTERVAL = 60 * 1000;
+
+const SCREENSAVER_DELAY = 3 * 1000;
+
 export default class Globe extends SimpleEventTarget {
   constructor() {
     super();
@@ -73,7 +78,7 @@ export default class Globe extends SimpleEventTarget {
     this.controls.addEventListener('start', this.onInteractionStarted.bind(this));
     this.controls.addEventListener('end', this.onInteractionStopped.bind(this));
 
-    this.screensaverTimer = setTimeout(this.startScreensaver.bind(this), 3000);
+    this.screensaverTimer = setTimeout(this.startScreensaver.bind(this), SCREENSAVER_DELAY);
   }
 
   get scene() {
@@ -93,11 +98,12 @@ export default class Globe extends SimpleEventTarget {
   }
 
   onInteractionStopped() {
-    this.screensaverTimer = setTimeout(this.startScreensaver.bind(this), 3000);
+    this.screensaverTimer = setTimeout(this.startScreensaver.bind(this), SCREENSAVER_DELAY);
   }
 
   startScreensaver() {
     this.controls.autoRotate = true;
+    this.pointOfInterestTimer = setInterval(this.moveToRandomPointOfInterest.bind(this), POINT_OF_INTEREST_INTERVAL);
   }
 
   stopScreensaver() {
@@ -106,6 +112,14 @@ export default class Globe extends SimpleEventTarget {
       this.screensaverTimer = clearTimeout(this.screensaverTimer);
     if (this.pointOfInterestTimer)
       this.pointOfInterestTimer = clearInterval(this.pointOfInterestTimer);
+  }
+
+  moveToRandomPointOfInterest() {
+    const pointOfInterest = this.pointsOfInterest[Math.floor(Math.random() * this.pointsOfInterest.length)];
+    this.globe.pointOfView({
+      lat: pointOfInterest.latitude,
+      lng: pointOfInterest.longitude
+    }, POINT_OF_INTEREST_ANIMATION_DURATION);
   }
 
   calculateSunPosition(date) {

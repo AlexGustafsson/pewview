@@ -1,7 +1,7 @@
 import Globe from "./globe"
 import Client from "./client"
 
-const DEBUG = true;
+const DEBUG = false;
 
 const POINTS_OF_INTEREST = [
   {latitude: 50.510986, longitude: 16.049161}, // "Europe"
