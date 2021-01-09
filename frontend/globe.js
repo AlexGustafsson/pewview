@@ -5,6 +5,8 @@ import {
   TextureLoader,
   DirectionalLightHelper,
   MeshLambertMaterial,
+  MeshPhongMaterial,
+  ImageUtils,
   Color
 } from "./include/three"
 import {default as ThreeGlobe} from "./include/globe.gl"
@@ -23,17 +25,18 @@ export default class Globe extends SimpleEventTarget {
 
     // Configure bump map
     const globeMaterial = this.globe.globeMaterial();
+    // TODO: The bump map has artifacts, leading to the ocean having square artifacts
     globeMaterial.bumpScale = 10;
-    new TextureLoader().load("./static/earth-water.png", texture => {
+    new TextureLoader().load("./static/specular-map.png", texture => {
       globeMaterial.specularMap = texture;
       globeMaterial.specular = new Color("grey");
       globeMaterial.shininess = 15;
     });
 
     // Setup textures
-    this.globe.backgroundImageUrl("./static/night-sky.png")
-      .globeImageUrl("./static/earth-night.jpg")
-      .bumpImageUrl("./static/earth-topology.png")
+    this.globe.backgroundImageUrl("./static/stars.png")
+      .globeImageUrl("./static/color-map.jpg")
+      .bumpImageUrl("./static/bump-map.png")
       .backgroundColor("#000000")
       .showAtmosphere(true);
 
@@ -50,15 +53,37 @@ export default class Globe extends SimpleEventTarget {
 
     // Setup the daytime hemisphere
     const now = new Date()
-    const solarTile = {position: this.calculateSunPosition(now)};
-    this.globe.tilesData([solarTile])
-      .tileLng(tile => tile.position.longitude)
-      .tileLat(tile => tile.position.latitude)
-      .tileAltitude(0.005)
-      .tileWidth(180)
-      .tileHeight(180)
-      .tileUseGlobeProjection(false)
-      .tileMaterial(() => new MeshLambertMaterial({ color: "#FFFF00", opacity: 0.1, transparent: true }))
+    const solarTile = {
+      position: this.calculateSunPosition(now),
+      material: new MeshLambertMaterial({color: "#FFFF00", opacity: 0.1, transparent: true}),
+      altitude: 0.006,
+      width: 180,
+      height: 180,
+      useGlobeProjection: false,
+      transitionDuration: 0
+    };
+    const cloudTile = {
+      position: {latitude: 0, longitude: 0},
+      material: new MeshPhongMaterial({
+        map: ImageUtils.loadTexture("./static/cloud-map.png"),
+        transparent: true,
+        opacity: 0.6
+      }),
+      altitude: 0.01,
+      width: 360,
+      height: 180,
+      useGlobeProjection: false,
+      transitionDuration: 0
+    }
+
+    this.globe.tilesData([solarTile, cloudTile])
+      .tileLng(context => context.position.longitude)
+      .tileLat(context => context.position.latitude)
+      .tileAltitude(context => context.altitude)
+      .tileWidth(context => context.width)
+      .tileHeight(context => context.height)
+      .tileUseGlobeProjection(context => context.useGlobeProjection)
+      .tileMaterial(context => context.material)
       .tilesTransitionDuration(0);
 
     // Screensaver timers
@@ -82,8 +107,9 @@ export default class Globe extends SimpleEventTarget {
   }
 
   performAdditionalSetup() {
-    this.directionalLight.position.set(150, 150, 150);
-    this.directionalLight.intensity = 1;
+    // TODO: Follow sun position
+    this.directionalLight.position.set(200, 0, 150);
+    this.directionalLight.intensity = 0.4;
 
     this.controls.maxDistance = 1000;
     this.controls.minDistance = 200;

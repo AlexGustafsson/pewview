@@ -1,7 +1,7 @@
 import Globe from "./globe"
 import Client from "./client"
 
-const DEBUG = false;
+const DEBUG = true;
 const DEMO_DATA = true;
 
 const POINTS_OF_INTEREST = [
