@@ -3,93 +3,108 @@ import {
   Vector3,
   Matrix4,
 } from "../include/three"
-import EventEmitter from "../event-emitter"
-import {bl, _l, hl, vl, yl} from "./globals"
+import {bl, messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME} from "./globals"
 
 function Al(t, e, n) {
-    const i = n || new Matrix4();
-    i.identity(), i.makeRotationY(e), i.multiply(t.matrix), t.matrix.copy(i), t.rotation.setFromRotationMatrix(t.matrix)
+  const i = n || new Matrix4();
+  i.identity();
+  i.makeRotationY(e);
+  i.multiply(t.matrix);
+  t.matrix.copy(i);
+  t.rotation.setFromRotationMatrix(t.matrix);
 }
 
 // in renderer as well
 function Nl(t, e, n) {
-    return Math.max(e, Math.min(t, n))
+  return Math.max(e, Math.min(t, n))
 }
 
 export default class Controller {
-    constructor(t) {
-        this.props = t, this.handleMouseDown = this.handleMouseDown.bind(this), this.handleMouseMove = this.handleMouseMove.bind(this), this.handleMouseUp = this.handleMouseUp.bind(this), this.handleMouseOut = this.handleMouseOut.bind(this), this.handleTouchStart = this.handleTouchStart.bind(this), this.handleTouchMove = this.handleTouchMove.bind(this), this.handleTouchEnd = this.handleTouchEnd.bind(this), this.handlePause = this.handlePause.bind(this), this.handleResume = this.handleResume.bind(this), this.init()
+  constructor(options) {
+    this.options = options; // {domElement, object, objectContainer, rotateSpeed, autoRotationSpeed, easing = 0.1, maxRotationX = 0.3}
+
+    this.dragging = false;
+    this.mouse = new Vector2(.5, .5);
+    this.lastMouse = new Vector2(.5, .5);
+    this.target = new Vector3(0, 0);
+    this.matrix = new Matrix4();
+    this.velocity = new Vector2();
+    this.autoRotationSpeedScalar = 1;
+    this.autoRotationSpeedScalarTarget = 1;
+
+    this.options.element.addEventListener("mousedown", this.handleMouseDown.bind(this), false)
+    this.options.element.addEventListener("mousemove", this.handleMouseMove.bind(this), false)
+    this.options.element.addEventListener("mouseup", this.handleMouseUp.bind(this), false)
+    this.options.element.addEventListener("mouseout", this.handleMouseOut.bind(this), false)
+    this.options.element.addEventListener("mouseleave", this.handleMouseOut.bind(this), false)
+    this.options.element.addEventListener("touchstart", this.handleTouchStart.bind(this), false)
+    this.options.element.addEventListener("touchmove", this.handleTouchMove.bind(this), false)
+    this.options.element.addEventListener("touchend", this.handleTouchEnd.bind(this), false)
+    this.options.element.addEventListener("touchcancel", this.handleTouchEnd.bind(this), false)
+
+    messageBus.on(EVENT_PAUSE, this.handlePause);
+    messageBus.on(EVENT_RESUME, this.handleResume)
+  }
+  setMouse(event) {
+    const {width, height} = bl.parentNode.getBoundingClientRect();
+    this.mouse.x = event.clientX / width * 2 - 1, this.mouse.y = -event.clientY / height * 2 + 1
+  }
+  setDragging(isDragging) {
+    this.dragging = isDragging;
+    if (this.options.setDraggingCallback)
+      this.options.setDraggingCallback(isDragging);
+  }
+  handlePause() {
+    // Originally removed listeners
+  }
+  handleResume() {
+    // Originally added listeners
+  }
+  handleMouseDown(event) {
+    this.setMouse(event);
+    this.setDragging(true);
+  }
+  handleMouseMove(event) {
+    this.setMouse(event);
+  }
+  handleMouseUp(event) {
+    this.setMouse(event);
+    this.setDragging(false);
+  }
+  handleMouseOut(_event) {
+    this.setDragging(false)
+  }
+  handleTouchStart(event) {
+    this.setMouse(event.changedTouches[0]);
+    this.lastMouse.copy(this.mouse);
+    this.setDragging(true);
+  }
+  handleTouchMove(event) {
+    this.setMouse(event.changedTouches[0]);
+  }
+  handleTouchEnd(event) {
+    this.setMouse(event.changedTouches[0]);
+    this.setDragging(false)
+  }
+  update(timestep = .01) {
+    let velocityX = 0;
+    let velocityY = 0;
+
+    if (this.dragging) {
+      velocityX = this.mouse.x - this.lastMouse.x
+      velocityY = this.mouse.y - this.lastMouse.y
+      this.target.y = Nl(this.target.y - velocityY, -this.options.maxRotationX, .6 * this.options.maxRotationX)
     }
-    init() {
-        this.dragging = false, this.mouse = new Vector2(.5, .5), this.lastMouse = new Vector2(.5, .5), this.target = new Vector3(0, 0), this.matrix = new Matrix4(), this.velocity = new Vector2(), this.autoRotationSpeedScalar = 1, this.autoRotationSpeedScalarTarget = 1, this.addListeners(), _l.on(vl, this.handlePause), _l.on(yl, this.handleResume)
-    }
-    addListeners() {
-        const {
-            domElement: t
-        } = this.props;
-        this.removeListeners(), t.addEventListener("mousedown", this.handleMouseDown, false), t.addEventListener("mousemove", this.handleMouseMove, false), t.addEventListener("mouseup", this.handleMouseUp, false), t.addEventListener("mouseout", this.handleMouseOut, false), t.addEventListener("mouseleave", this.handleMouseOut, false), t.addEventListener("touchstart", this.handleTouchStart, false), t.addEventListener("touchmove", this.handleTouchMove, false), t.addEventListener("touchend", this.handleTouchEnd, false), t.addEventListener("touchcancel", this.handleTouchEnd, false)
-    }
-    removeListeners() {
-        const {
-            domElement: t
-        } = this.props;
-        t.removeEventListener("mousedown", this.handleMouseDown), t.removeEventListener("mousemove", this.handleMouseMove), t.removeEventListener("mouseup", this.handleMouseUp), t.removeEventListener("mouseout", this.handleMouseOut), t.removeEventListener("mouseleave", this.handleMouseOut), t.removeEventListener("touchstart", this.handleTouchStart), t.removeEventListener("touchmove", this.handleTouchMove), t.removeEventListener("touchend", this.handleTouchEnd), t.removeEventListener("touchcancel", this.handleTouchEnd)
-    }
-    setMouse(t) {
-        const {
-            width: e,
-            height: n
-        } = bl.parentNode.getBoundingClientRect();
-        this.mouse.x = t.clientX / e * 2 - 1, this.mouse.y = -t.clientY / n * 2 + 1
-    }
-    setDragging(t) {
-        this.dragging = t;
-        const {
-            setDraggingCallback: e
-        } = this.props;
-        e && "function" == typeof e && e(t)
-    }
-    handlePause() {
-        this.removeListeners()
-    }
-    handleResume() {
-        this.addListeners()
-    }
-    handleMouseDown(t) {
-        this.setMouse(t), this.setDragging(true)
-    }
-    handleMouseMove(t) {
-        this.setMouse(t)
-    }
-    handleMouseUp(t) {
-        this.setMouse(t), this.setDragging(false)
-    }
-    handleMouseOut() {
-        this.setDragging(false)
-    }
-    handleTouchStart(t) {
-        this.setMouse(t.changedTouches[0]), this.lastMouse.copy(this.mouse), this.setDragging(true)
-    }
-    handleTouchMove(t) {
-        this.setMouse(t.changedTouches[0])
-    }
-    handleTouchEnd(t) {
-        this.setMouse(t.changedTouches[0]), this.setDragging(false)
-    }
-    update(t = .01) {
-        let e = 0,
-            n = 0;
-        const {
-            object: i,
-            objectContainer: r,
-            rotateSpeed: s,
-            autoRotationSpeed: o,
-            easing: c = .1,
-            maxRotationX: h = .3
-        } = this.props;
-        this.dragging && (e = this.mouse.x - this.lastMouse.x, n = this.mouse.y - this.lastMouse.y, this.target.y = Nl(this.target.y - n, -h, .6 * h)), r.rotation.x += (this.target.y + hl.x - r.rotation.x) * c, this.target.x += (e - this.target.x) * c, Al(i, this.target.x * s, this.matrix), this.dragging || Al(i, t * o * this.autoRotationSpeedScalar, this.matrix), this.autoRotationSpeedScalar += .05 * (this.autoRotationSpeedScalarTarget - this.autoRotationSpeedScalar), this.lastMouse.copy(this.mouse), this.velocity.set(e, n)
-    }
-    dispose() {
-        this.removeListeners(), _l.off(vl, this.handlePause), _l.off(yl, this.handleResume), this.dragging = null, this.mouse = null, this.lastMouse = null, this.target = null, this.matrix = null, this.velocity = null, this.autoRotationSpeedScalar = null, this.autoRotationSpeedScalarTarget = null
-    }
+
+    this.options.objectContainer.rotation.x += (this.target.y + START_ROTATION.x - this.options.objectContainer.rotation.x) * this.options.easing;
+    this.target.x += (velocityX - this.target.x) * this.options.easing;
+    Al(this.options.object, this.target.x * this.options.rotateSpeed, this.matrix)
+
+    if (!this.dragging)
+      Al(this.options.object, timestep * this.options.autoRotationSpeed * this.autoRotationSpeedScalar, this.matrix)
+
+    this.autoRotationSpeedScalar += .05 * (this.autoRotationSpeedScalarTarget - this.autoRotationSpeedScalar);
+    this.lastMouse.copy(this.mouse);
+    this.velocity.set(velocityX, velocityY);
+  }
 }

@@ -1,4 +1,4 @@
-import Loader from "./rendering/loader"
+import App from "./rendering/app"
 
 const onLoaded = (document.readyState === "interactive" || document.readyState === "complete") ? Promise.resolve() : new Promise(resolve => {
   document.addEventListener("DOMContentLoaded", () => {
@@ -20,14 +20,14 @@ onLoaded.then(() => {
   else
     return console.error("WebGL not supported");
 
-  const globe = new Loader({
+  const globe = new App({
     basePath: "/",
     imagePath: "static/",
     dataPath: "static/",
     parentNode: parentNode,
-    globeRadius: 25,
+    globeRadius: 30,
     lineWidth: 1.5,
-    spikeRadius: .06
+    spikeRadius: .2
   });
 
   globe.init().then((() => {

@@ -83,7 +83,7 @@ frontend: ./frontend/index.html ./frontend/index.css ./build/frontend/index.min.
 ./build/frontend/index.min.js: $(wildcard ./frontend/*.js) $(wildcard ./frontend/rendering/*.js) $(wildcard ./frontend/include/*.js)
 	mkdir -p ./build/frontend
 	# Build minified distribution with no debugging
-	npx esbuild ./frontend/main.js --bundle --outfile=./build/frontend/index.min.js --external:fs --external:path --minify --sourcemap --target=$(BROWSERLIST) --define:process.env.NODE_ENV=\"production\"
+	npx esbuild ./frontend/main.js --bundle --loader:.vert=text --loader:.frag=text --outfile=./build/frontend/index.min.js --external:fs --external:path --minify --sourcemap --target=$(BROWSERLIST) --define:process.env.NODE_ENV=\"production\"
 
 # Build for Linux
 linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz
