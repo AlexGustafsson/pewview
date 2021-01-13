@@ -2,7 +2,6 @@ package pewview
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/AlexGustafsson/pewview/geoip"
 	goflow "github.com/cloudflare/goflow/v3/utils"
@@ -116,10 +115,7 @@ func (server *Server) Start() error {
 		server.Workers = 1
 	}
 
-	server.transport = &Transport{
-		GeoIP:  server.GeoIP,
-		Server: server,
-	}
+	server.transport = NewTransport(server, 60)
 
 	log.Info("Starting PewView")
 
@@ -151,13 +147,7 @@ func (server *Server) Start() error {
 	return nil
 }
 
-// BroadcastPair broadcasts a pair to all connected clients
-func (server *Server) BroadcastPair(pair *geoip.LookupResultPair) error {
-	encodedPair, err := json.Marshal(pair)
-	if err != nil {
-		return err
-	}
-
-	server.hub.broadcast <- encodedPair
-	return nil
+// Broadcast ...
+func (server *Server) Broadcast(message []byte) {
+	server.hub.broadcast <- message
 }

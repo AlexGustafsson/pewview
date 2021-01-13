@@ -1,15 +1,25 @@
 package pewview
 
 import (
-	"github.com/AlexGustafsson/pewview/geoip"
 	flowmessage "github.com/cloudflare/goflow/v3/pb"
 	log "github.com/sirupsen/logrus"
+	"encoding/json"
 )
 
 // Transport is a custom transport used for handling incoming messages
 type Transport struct {
-	GeoIP  geoip.GeoIP
 	Server *Server
+	WindowSize float64
+	state *State
+}
+
+// NewTransport creates a new transport
+func NewTransport(server *Server, windowSize float64) *Transport {
+	return &Transport {
+		Server: server,
+		WindowSize: windowSize,
+		state: nil,
+	}
 }
 
 func stringOrDefault(value string, defaultValue string) string {
@@ -24,19 +34,27 @@ func stringOrDefault(value string, defaultValue string) string {
 func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 	log.WithFields(log.Fields{"Type": "NetFlow"}).Debug("Handling incoming messages")
 	for _, message := range messages {
-		pair, err := geoip.LookupPair(transport.GeoIP, message.SrcAddr, message.DstAddr)
-		if err != nil {
-			log.Errorf("Error: unable to get lookup pair from database (%v)", err)
-			continue
-		}
-
-		log.Debugf("Consumed interaction %v, %v (%v, %v) -> %v, %v (%v, %v)", stringOrDefault(pair.Source.CityName, "Unknown City Name"), stringOrDefault(pair.Source.CountryName, "Unknown Country Name"), pair.Source.Latitude, pair.Source.Longitude, stringOrDefault(pair.Destination.CityName, "Unknown City Name"), stringOrDefault(pair.Destination.CountryName, "Unknown Country Name"), pair.Destination.Latitude, pair.Destination.Longitude)
-
-		if pair.HasCoordinates() {
-			err = transport.Server.BroadcastPair(pair)
+		if transport.state == nil {
+			transport.state = NewState(transport.Server)
+		} else if transport.state.Duration().Seconds() >= transport.WindowSize {
+			// NOTE: Doing it this way assumes that there is a steady stream of incoming
+			// messages. If there are non for a while, the deadline will be missed.
+			// Consider rewriting this functionality using a parallel pub-sub model instead
+			window, err := transport.state.Summarize()
 			if err != nil {
-				log.Debugf("Error: unable to broadcast incoming pair", err)
+				log.Errorf("Unable to summarize window: %v", err)
 			}
+
+			encodedWindow, err := json.Marshal(window)
+			if err != nil {
+				log.Errorf("Unable to encode window as JSON: %v", err)
+			}
+
+			transport.Server.Broadcast(encodedWindow)
+
+			transport.state = NewState(transport.Server)
 		}
+
+		transport.state.Push(message)
 	}
 }

@@ -71,7 +71,7 @@ build/pewview: $(source) Makefile
 	go build $(BUILD_FLAGS) -o $@ cmd/pewview/pewview.go
 
 # Build the frontend
-frontend: ./build/frontend/index.min.js $(frontend_target_resources)
+frontend: ./frontend/index.html ./frontend/index.css ./build/frontend/index.min.js $(frontend_target_resources)
 	rm -rf ./build/frontend/static &> /dev/null || true
 	cp -r ./frontend/static ./build/frontend
 	cp ./frontend/index.html ./build/frontend/
@@ -80,10 +80,10 @@ frontend: ./build/frontend/index.min.js $(frontend_target_resources)
 ./build/frontend.zip: frontend
 	zip ./build/frontend.zip -r ./build/frontend
 
-./build/frontend/index.min.js: ./frontend/index.js $(wildcard ./frontend/include/*.js)
+./build/frontend/index.min.js: $(wildcard ./frontend/*.js) $(wildcard ./frontend/rendering/*.js) $(wildcard ./frontend/include/*.js)
 	mkdir -p ./build/frontend
 	# Build minified distribution with no debugging
-	npx esbuild ./frontend/index.js --bundle --outfile=./build/frontend/index.min.js --external:fs --external:path --minify --sourcemap --target=$(BROWSERLIST) --define:process.env.NODE_ENV=\"production\"
+	npx esbuild ./frontend/main.js --bundle --outfile=./build/frontend/index.min.js --external:fs --external:path --minify --sourcemap --target=$(BROWSERLIST) --define:process.env.NODE_ENV=\"production\"
 
 # Build for Linux
 linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz
