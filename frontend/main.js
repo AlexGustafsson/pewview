@@ -25,9 +25,9 @@ onLoaded.then(() => {
     imagePath: "static/",
     dataPath: "static/",
     parentNode: parentNode,
-    globeRadius: 30,
+    globeRadius: 25,
     lineWidth: 1.5,
-    spikeRadius: .2
+    spikeRadius: .06
   });
 
   globe.init().then((() => {
