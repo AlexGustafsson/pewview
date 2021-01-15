@@ -182,7 +182,7 @@ export default class WebGLController {
       rotateSpeed: isMobile ? 1.5 : 3,
       autoRotationSpeed: this.rotationSpeed,
       easing: .12,
-      maxRotationX: .5,
+      maxRotationX: 1,
       camera: this.camera
     })
   }

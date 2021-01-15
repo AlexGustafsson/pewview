@@ -47,7 +47,8 @@ export default class Controller {
   }
   setMouse(event) {
     const {width, height} = bl.parentNode.getBoundingClientRect();
-    this.mouse.x = event.clientX / width * 2 - 1, this.mouse.y = -event.clientY / height * 2 + 1
+    this.mouse.x = event.clientX / width * 2 - 1;
+    this.mouse.y = -event.clientY / height * 2 + 1;
   }
   setDragging(isDragging) {
     this.dragging = isDragging;
