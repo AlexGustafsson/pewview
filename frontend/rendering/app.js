@@ -1,6 +1,6 @@
-import Renderer from "./renderer"
+import {TextureLoader} from "../include/three"
+import WebGLController from "./web-gl-controller"
 import {bl} from "./globals"
-import Loader from "./loader"
 
 export default class App {
   constructor(options) {
@@ -15,40 +15,10 @@ export default class App {
       // imagePath
       ...options
     }
+    console.log(options);
 
     for (const [key, value] of Object.entries(this.options))
       bl[key] = value;
-  }
-
-  async loadAssets() {
-    const sources = [{
-      url: `${this.options.basePath}${this.options.imagePath}map.png`,
-      id: "worldMap"
-    }];
-
-    const loader = new Loader();
-    const {assets} = await loader.load(sources);
-    loader.dispose();
-    return assets
-  }
-
-  async loadData() {
-    const response = await fetch(this.options.dataPath + "data.json", {
-      method: "GET",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    if (response.status !== 200)
-      throw new Error(`WebGL Globe: Failed to load data.json (status: ${e.status})`);
-
-    const data = await response.json();
-    if (!data || 0 === data.length)
-      throw new Error("WebGL Globe: data.json response was empty");
-
-    return data;
   }
 
   filterData(t) {
@@ -65,13 +35,22 @@ export default class App {
   }
 
   async init() {
-    const assets = await this.loadAssets();
-    bl.assets = assets;
+    const worldMap = await new Promise((resolve, reject) => {
+      new TextureLoader().load("/static/map.png", texture => resolve(texture), null, error => reject(error));
+    });
 
-    const data = await this.loadData();
+    const dataRequest = await fetch("/static/data.json", {
+      method: "GET",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const data = await dataRequest.json();
+
     bl.data = this.filterData(data);
-    this.webglController = new Renderer(bl.parentNode || document.body);
-    this.webglController.initDataObjects(bl.data);
+    this.webglController = new WebGLController({element: bl.parentNode, isMobile: this.options.isMobile, globeRadius: this.options.globeRadius});
+    this.webglController.initDataObjects(bl.data, worldMap);
     this.webglController.transitionIn(1.5, .6);
   }
 

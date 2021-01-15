@@ -19,16 +19,6 @@ import {
   Object3D,
   CircleBufferGeometry,
   InstancedMesh,
-  BoxBufferGeometry,
-  CylinderBufferGeometry,
-  InstancedBufferAttribute,
-  BufferGeometry,
-  Float32BufferAttribute,
-  PointsMaterial,
-  Points,
-  CubicBezierCurve3,
-  TubeBufferGeometry,
-  RingBufferGeometry
 } from "../include/three"
 import Tooltip from "./tooltip"
 import Globe from "./globe"
@@ -37,12 +27,10 @@ import MergedPREntity from "./merged-pr-entity"
 import OpenPREntity from "./open-pr-entity"
 import {bl, messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME, ul, dl} from "./globals"
 
-const cl = 25;
 const fl = 16777215;
 const ml = 2197759;
 const gl = 16018366;
 const Ml = Math.PI / 180; //rad2deg
-const Sl = 180 / Math.PI; //deg2rad
 
 // Same as open-pr
 function Rl(t, e, n, i) {
@@ -57,21 +45,21 @@ function Ll(t) {
     t instanceof Mesh && (t.geometry && t.geometry.dispose(), t.material && (t.material.map && t.material.map.dispose(), t.material.lightMap && t.material.lightMap.dispose(), t.material.bumpMap && t.material.bumpMap.dispose(), t.material.normalMap && t.material.normalMap.dispose(), t.material.specularMap && t.material.specularMap.dispose(), t.material.envMap && t.material.envMap.dispose(), t.material.emissiveMap && t.material.emissiveMap.dispose(), t.material.metalnessMap && t.material.metalnessMap.dispose(), t.material.roughnessMap && t.material.roughnessMap.dispose(), t.material.dispose()))
 }
 
-export default class Renderer {
-    constructor(t) {
-        this.handleResize = this.handleResize.bind(this);
-        this.handlePause = this.handlePause.bind(this);
-        this.handleResume = this.handleResume.bind(this);
-        this.handleScroll = this.handleScroll.bind(this);
-        this.handleMouseMove = this.handleMouseMove.bind(this);
-        this.setDragging = this.setDragging.bind(this);
-        this.update = this.update.bind(this);
-        this.hasLoaded = false;
-        this.initBase(t || document.body);
-        this.initScene();
-        this.addListeners();
-        messageBus.on(EVENT_PAUSE, this.handlePause);
-        messageBus.on(EVENT_RESUME, this.handleResume);
+export default class WebGLController {
+    constructor({element, isMobile, globeRadius}) {
+      this.handleResize = this.handleResize.bind(this);
+      this.handlePause = this.handlePause.bind(this);
+      this.handleResume = this.handleResume.bind(this);
+      this.handleScroll = this.handleScroll.bind(this);
+      this.handleMouseMove = this.handleMouseMove.bind(this);
+      this.setDragging = this.setDragging.bind(this);
+      this.update = this.update.bind(this);
+      this.hasLoaded = false;
+      this.initBase(element);
+      this.initScene(globeRadius, isMobile);
+      this.addListeners();
+      messageBus.on(EVENT_PAUSE, this.handlePause);
+      messageBus.on(EVENT_RESUME, this.handleResume);
     }
     initBase(t) {
       const {width, height} = bl.parentNode.getBoundingClientRect();
@@ -83,12 +71,6 @@ export default class Renderer {
             preserveDrawingBuffer: false
         });
         this.then = Date.now() / 1e3;
-        this.fpsWarnings = 0;
-        this.fpsWarningThreshold = 50;
-        this.fpsTarget = 60;
-        this.fpsEmergencyThreshold = 12;
-        this.fpsTargetSensitivity = .925;
-        this.fpsStorage = [];
         this.worldDotRows = 200;
         this.worldDotSize = .095;
         this.renderQuality = 4;
@@ -135,35 +117,36 @@ export default class Renderer {
         this.handleResize();
         this.startUpdating();
     }
-    initScene() {
-        const {
-            isMobile: t,
-            globeRadius: e = cl,
-            assets: {
-                textures: {
-                    globeDiffuse: n,
-                    globeAlpha: i
-                }
-            }
-        } = bl;
-        this.radius = e, this.light0 = new SpotLight(ml, 12, 120, .3, 0, 1.1), this.light1 = new DirectionalLight(11124735, 3), this.light3 = new SpotLight(gl, 5, 75, .5, 0, 1.25), this.light0.target = this.parentContainer, this.light1.target = this.parentContainer, this.light3.target = this.parentContainer, this.scene.add(this.light0, this.light1, this.light3), this.positionContainer(), this.shadowPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(.7 * this.radius, .3 * -this.radius, this.radius)), this.highlightPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(1.5 * -this.radius, 1.5 * -this.radius, 0)), this.frontPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(0, 0, this.radius));
+    initScene(globeRadius, isMobile) {
+        this.radius = globeRadius;
+        this.light0 = new SpotLight(ml, 12, 120, .3, 0, 1.1);
+        this.light1 = new DirectionalLight(11124735, 3);
+        this.light3 = new SpotLight(gl, 5, 75, .5, 0, 1.25);
+        this.light0.target = this.parentContainer;
+        this.light1.target = this.parentContainer;
+        this.light3.target = this.parentContainer;
+        this.scene.add(this.light0, this.light1, this.light3);
+        this.positionContainer();
+        this.shadowPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(.7 * this.radius, .3 * -this.radius, this.radius));
+        this.highlightPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(1.5 * -this.radius, 1.5 * -this.radius, 0));
+        this.frontPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(0, 0, this.radius));
         const r = new Globe({
-            radius: this.radius,
-            detail: 55,
-            renderer: this.renderer,
-            shadowPoint: this.shadowPoint,
-            shadowDist: 1.5 * this.radius,
-            highlightPoint: this.highlightPoint,
-            highlightColor: 5339494,
-            highlightDist: 5,
-            frontPoint: this.frontPoint,
-            frontHighlightColor: 2569853,
-            waterColor: 1513012,
-            landColorFront: fl,
-            landColorBack: fl
+          radius: this.radius,
+          detail: 55,
+          renderer: this.renderer,
+          shadowPoint: this.shadowPoint,
+          shadowDist: 1.5 * this.radius,
+          highlightPoint: this.highlightPoint,
+          highlightColor: 5339494,
+          highlightDist: 5,
+          frontPoint: this.frontPoint,
+          frontHighlightColor: 2569853,
+          waterColor: 1513012,
+          landColorFront: fl,
+          landColorBack: fl
         });
         this.container.add(r.mesh), this.globe = r;
-        const s = new Mesh(new SphereBufferGeometry(cl, 45, 45), new ShaderMaterial({
+        const s = new Mesh(new SphereBufferGeometry(globeRadius, 45, 45), new ShaderMaterial({
             uniforms: {
                 c: {
                     type: "f",
@@ -193,21 +176,21 @@ export default class Renderer {
             objectContainer: this.parentContainer,
             element: this.renderer.domElement,
             setDraggingCallback: this.setDragging,
-            rotateSpeed: t ? 1.5 : 3,
+            rotateSpeed: isMobile ? 1.5 : 3,
             autoRotationSpeed: this.rotationSpeed,
             easing: .12,
             maxRotationX: .5,
             camera: this.camera
         })
     }
-    initDataObjects(t) {
+    initDataObjects(t, worldMap) {
         const e = {
             openPrColor: ml,
             openPrParticleColor: 6137337,
             mergedPrColor: gl,
             mergedPrColorHighlight: fl
         };
-        this.buildWorldGeometry();
+        this.buildWorldGeometry(worldMap);
         this.maxAmount = t.length;
         this.maxIndexDistance = 60;
         this.indexIncrementSpeed = 15;
@@ -241,16 +224,6 @@ export default class Renderer {
             controls: this.controls
         }), this.dataItem = {}, this.intersectTests.push(this.globe.meshFill), this.intersectTests.push(this.openPrEntity.spikeIntersects), this.intersectTests.push(...this.mergedPrEntity.lineHitMeshes), this.intersects = []
     }
-    monitorFps() {
-        if (1 == this.renderQuality) return;
-        const t = Date.now() / 1e3,
-            e = t - this.then;
-        this.then = t;
-        const n = parseInt(1 / e + .5);
-        this.fpsStorage.push(n), this.fpsStorage.length > 10 && this.fpsStorage.shift();
-        const i = this.fpsStorage.reduce(((t, e) => t + e)) / this.fpsStorage.length;
-        i < this.fpsTarget * this.fpsTargetSensitivity && this.fpsStorage.length > 9 ? (this.fpsWarnings++, this.fpsWarnings > this.fpsWarningThreshold && (this.renderQuality = Math.max(this.renderQuality - 1, 1), this.fpsWarnings = 0, this.updateRenderQuality(), this.fpsStorage = [])) : this.fpsStorage.length > 9 && i < this.fpsEmergencyThreshold ? (this.renderQuality = 1, this.initPerformanceEmergency()) : this.fpsWarnings = 0
-    }
     updateRenderQuality() {
         4 == this.renderQuality ? this.initRegularQuality() : 3 == this.renderQuality ? this.initMediumQuality() : 2 == this.renderQuality ? this.initLowQuality() : 1 == this.renderQuality && this.initLowestQuality()
     }
@@ -269,16 +242,13 @@ export default class Renderer {
     initPerformanceEmergency() {
         this.dispose()
     }
-    buildWorldGeometry() {
-        const {
-            assets: {
-                textures: {
-                    worldMap: t
-                }
-            }
-        } = bl, e = new Object3D, n = this.getImageData(t.image), i = [], r = this.worldDotRows;
+    buildWorldGeometry(worldMap) {
+        const e = new Object3D;
+        const n = this.getImageData(worldMap.image);
+        const i = [];
+        const r = this.worldDotRows;
         for (let h = -90; h <= 90; h += 180 / r) {
-            const t = Math.cos(Math.abs(h) * Ml) * cl * Math.PI * 2 * 2;
+            const t = Math.cos(Math.abs(h) * Ml) * this.radius * Math.PI * 2 * 2;
             for (let r = 0; r < t; r++) {
                 const s = 360 * r / t - 180;
                 if (!this.visibilityForCoordinate(s, h, n)) continue;
@@ -321,7 +291,10 @@ export default class Renderer {
     }
     getImageData(t) {
         const e = document.createElement("canvas").getContext("2d");
-        return e.canvas.width = t.width, e.canvas.height = t.height, e.drawImage(t, 0, 0, t.width, t.height), e.getImageData(0, 0, t.width, t.height)
+        e.canvas.width = t.width;
+        e.canvas.height = t.height;
+        e.drawImage(t, 0, 0, t.width, t.height);
+        return e.getImageData(0, 0, t.width, t.height);
     }
     addListeners() {
         window.addEventListener("resize", this.handleResize, false), window.addEventListener("orientationchange", this.handleResize, false), window.addEventListener("scroll", this.handleScroll, false), this.handleClick = t => {
@@ -460,7 +433,7 @@ export default class Renderer {
         }))
     }
     handleUpdate() {
-        if (this.monitorFps(), null === this.clock) return;
+        if (null === this.clock) return;
         const t = this.clock.getDelta();
         if (this.controls && this.controls.update(t), this.visibleIndex += t * this.indexIncrementSpeed, this.visibleIndex >= this.maxAmount - 60 && (this.visibleIndex = 60), this.openPrEntity && this.openPrEntity.update(this.visibleIndex), this.mergedPrEntity && this.mergedPrEntity.update(t, this.visibleIndex), !this.dataInfo) return void this.render();
         const {

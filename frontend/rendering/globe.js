@@ -17,8 +17,8 @@ export default class Globe {
     shadowPoint,
     highlightPoint,
     highlightColor,
-    frontHighlightColor = 3555965,
-    waterColor = 857395,
+    frontHighlightColor = 0x36427d,
+    waterColor = 0xd1533,
     shadowDist,
     highlightDist,
     frontPoint

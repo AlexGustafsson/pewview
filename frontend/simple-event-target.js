@@ -16,6 +16,6 @@ export default class SimpleEventTarget {
   dispatchEvent(event, ...details) {
     const listeners = this.listeners[event] || [];
     for (const listener of listeners)
-      listener(event, ...details);
+      listener(...details);
   }
 }
