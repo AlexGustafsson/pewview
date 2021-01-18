@@ -1,24 +1,24 @@
 package pewview
 
 import (
+	"encoding/json"
 	flowmessage "github.com/cloudflare/goflow/v3/pb"
 	log "github.com/sirupsen/logrus"
-	"encoding/json"
 )
 
 // Transport is a custom transport used for handling incoming messages
 type Transport struct {
-	Server *Server
+	Server     *Server
 	WindowSize float64
-	state *State
+	state      *State
 }
 
 // NewTransport creates a new transport
 func NewTransport(server *Server, windowSize float64) *Transport {
-	return &Transport {
-		Server: server,
+	return &Transport{
+		Server:     server,
 		WindowSize: windowSize,
-		state: nil,
+		state:      nil,
 	}
 }
 
@@ -50,7 +50,7 @@ func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 				log.Errorf("Unable to encode window as JSON: %v", err)
 			}
 
-			transport.Server.Broadcast(encodedWindow)
+			log.Infof("%v", encodedWindow)
 
 			transport.state = NewState(transport.Server)
 		}

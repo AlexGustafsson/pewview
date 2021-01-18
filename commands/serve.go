@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/AlexGustafsson/pewview/geoip"
 	"github.com/AlexGustafsson/pewview/pewview"
+	"github.com/AlexGustafsson/pewview/pewview/api/v1"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"runtime"
@@ -33,6 +34,12 @@ func serveCommand(context *cli.Context) error {
 	webRoot := context.String("web.root")
 	webAddress := context.String("web.address")
 	webPort := context.Int("web.port")
+
+	metricsConfiguration := &v1.MetricsConfiguration{
+		IncludeBytes:              context.Bool("metrics.bytes"),
+		IncludeSourceAddress:      context.Bool("metrics.source-address"),
+		IncludeDestinationAddress: context.Bool("metrics.destination-address"),
+	}
 
 	if !enableIPFIX && !enableNetFlow && !enableSFlow {
 		return fmt.Errorf("No consumer was enabled")
@@ -89,6 +96,8 @@ func serveCommand(context *cli.Context) error {
 		WebRoot:    webRoot,
 		WebAddress: webAddress,
 		WebPort:    webPort,
+
+		MetricsConfiguration: metricsConfiguration,
 	}
 
 	return server.Start()

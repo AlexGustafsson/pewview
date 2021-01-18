@@ -99,6 +99,21 @@ var Commands = []*cli.Command{
 				Usage: "The port to use for web traffic (UI / API)",
 				Value: 8080,
 			},
+			&cli.BoolFlag{
+				Name:  "metrics.bytes",
+				Usage: "Expose number of bytes sent in a connection",
+				Value: false,
+			},
+			&cli.BoolFlag{
+				Name:  "metrics.source-address",
+				Usage: "Expose source address of a connection",
+				Value: false,
+			},
+			&cli.BoolFlag{
+				Name:  "metrics.destination-address",
+				Usage: "Expose destination address of a connection",
+				Value: false,
+			},
 		},
 	},
 }

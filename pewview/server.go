@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"github.com/AlexGustafsson/pewview/geoip"
+	"github.com/AlexGustafsson/pewview/pewview/api/v1"
 	goflow "github.com/cloudflare/goflow/v3/utils"
-	"github.com/gorilla/websocket"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	"net/http"
+	"os"
+	"time"
 )
 
 // Server is the core PewView server
@@ -17,28 +21,32 @@ type Server struct {
 	Workers int
 
 	// NetFlow v9 / IPFIX
-	EnableIPFIX bool
-	IPFIXPort   int
-	ipfix       *goflow.StateNetFlow
+	EnableIPFIX  bool
+	IPFIXAddress string
+	IPFIXPort    int
+	ipfix        *goflow.StateNetFlow
 
 	// NetFlow v5 / IPFIX
-	EnableNetFlow bool
-	NetFlowPort   int
-	netFlow       *goflow.StateNFLegacy
+	EnableNetFlow  bool
+	NetFlowAddress string
+	NetFlowPort    int
+	netFlow        *goflow.StateNFLegacy
 
 	// SFlow
-	EnableSFlow bool
-	SFlowPort   int
-	sFlow       *goflow.StateSFlow
+	EnableSFlow  bool
+	SFlowAddress string
+	SFlowPort    int
+	sFlow        *goflow.StateSFlow
 
 	transport goflow.Transport
 
 	GeoIP geoip.GeoIP
 
-	WebRoot  string
-	WebPort  int
-	upgrader *websocket.Upgrader
-	hub      *Hub
+	WebRoot    string
+	WebAddress string
+	WebPort    int
+
+	MetricsConfiguration *v1.MetricsConfiguration
 }
 
 func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
@@ -50,7 +58,7 @@ func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
 	errorGroup.Go(func() error {
 		log.WithFields(log.Fields{"Type": "IPFIX"}).Infof("Listening on UDP %v:%v", server.Address, server.IPFIXPort)
 
-		return server.ipfix.FlowRoutine(server.Workers, server.Address, server.IPFIXPort, false)
+		return server.ipfix.FlowRoutine(server.Workers, server.IPFIXAddress, server.IPFIXPort, false)
 	})
 }
 
@@ -62,7 +70,7 @@ func (server *Server) startNetFlow(errorGroup *errgroup.Group) {
 
 	errorGroup.Go(func() error {
 		log.WithFields(log.Fields{"Type": "NetFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.NetFlowPort)
-		return server.netFlow.FlowRoutine(server.Workers, server.Address, server.NetFlowPort, false)
+		return server.netFlow.FlowRoutine(server.Workers, server.NetFlowAddress, server.NetFlowPort, false)
 	})
 }
 
@@ -74,38 +82,43 @@ func (server *Server) startSFlow(errorGroup *errgroup.Group) {
 
 	errorGroup.Go(func() error {
 		log.WithFields(log.Fields{"Type": "sFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.SFlowPort)
-		return server.sFlow.FlowRoutine(server.Workers, server.Address, server.SFlowPort, false)
+		return server.sFlow.FlowRoutine(server.Workers, server.SFlowAddress, server.SFlowPort, false)
 	})
-}
-
-func (server *Server) serveWebSocket(response http.ResponseWriter, request *http.Request) {
-	log.WithFields(log.Fields{"Type": "Web"}).Debugf("upgrading incoming websocket")
-	connection, err := server.upgrader.Upgrade(response, request, nil)
-	if err != nil {
-		log.WithFields(log.Fields{"Type": "Web"}).Errorf("Error: could not upgrade connection: %v", err)
-		return
-	}
-
-	client := RegisterClient(connection, server.hub)
-	client.send <- []byte("Hello, Client!")
 }
 
 func (server *Server) startWeb(errorGroup *errgroup.Group) {
-	server.upgrader = &websocket.Upgrader{}
-	server.hub = NewHub()
-	go server.hub.Run()
+	router := mux.NewRouter()
 
-	fileServer := http.FileServer(http.Dir(server.WebRoot))
-	http.Handle("/", fileServer)
+	// APIv1
+	api := v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), 60)
+	api.MetricsConfiguration = server.MetricsConfiguration
 
-	http.HandleFunc("/ws", func(response http.ResponseWriter, request *http.Request) {
-		server.serveWebSocket(response, request)
-	})
+	bucket := v1.NewBucket(uint64(time.Now().Unix()), float64(api.Window))
+	connection := &v1.Connection{
+		VisibleOrigin:   0,
+		VisibleDuration: 1,
+		Source:          v1.NewCoordinate(10.5, 2.5),
+		Destination:     v1.NewCoordinate(10.5, 2.5),
+		Metrics: &v1.Metrics{
+			Bytes: 100,
+		},
+	}
+	bucket.AddConnection(connection)
+	api.AddBucket(bucket)
+
+	// Static files
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
+
+	httpServer := &http.Server{
+		Handler:      handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, router)),
+		Addr:         fmt.Sprintf("%v:%v", server.WebAddress, server.WebPort),
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+	}
 
 	errorGroup.Go(func() error {
 		log.WithFields(log.Fields{"Type": "Web"}).Infof("Listening on TCP %v:%v", server.Address, server.WebPort)
-		address := fmt.Sprintf("%v:%v", server.Address, server.WebPort)
-		return http.ListenAndServe(address, nil)
+		return httpServer.ListenAndServe()
 	})
 }
 
@@ -145,9 +158,4 @@ func (server *Server) Start() error {
 	}
 
 	return nil
-}
-
-// Broadcast ...
-func (server *Server) Broadcast(message []byte) {
-	server.hub.broadcast <- message
 }
