@@ -16,38 +16,48 @@ var Commands = []*cli.Command{
 		Usage:  "Start the server",
 		Action: serveCommand,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:  "address",
-				Usage: "Address to listen on",
-				Value: "",
-			},
 			&cli.BoolFlag{
-				Name:  "ipfix",
+				Name:  "consumer.ipfix",
 				Usage: "Enable IPFIX / NetFlow v9",
 				Value: false,
 			},
+			&cli.StringFlag{
+				Name:  "consumer.ipfix.address",
+				Usage: "Address to listen on for IPFIX / NetFlow v9 traffic",
+				Value: "",
+			},
 			&cli.IntFlag{
-				Name:  "ipfix.port",
+				Name:  "consumer.ipfix.port",
 				Usage: "Port to consume IPFIX / NetFlow v9 on",
 				Value: 2055,
 			},
 			&cli.BoolFlag{
-				Name:  "netflow",
+				Name:  "consumer.netflow",
 				Usage: "Enable NetFlow v5",
 				Value: false,
 			},
+			&cli.StringFlag{
+				Name:  "consumer.netflow.address",
+				Usage: "Address to listen on for NetFlow v5 traffic",
+				Value: "",
+			},
 			&cli.IntFlag{
-				Name:  "netflow.port",
+				Name:  "consumer.netflow.port",
 				Usage: "Port to consume NetFlow v5 on",
 				Value: 2056,
 			},
 			&cli.BoolFlag{
-				Name:  "sflow",
+				Name:  "consumer.sflow",
 				Usage: "Enable sFlow",
 				Value: false,
 			},
+			&cli.StringFlag{
+				Name:  "consumer.sflow.address",
+				Usage: "Address to listen on for sFlow traffic",
+				Value: "",
+			},
 			&cli.IntFlag{
-				Name:  "sflow.port",
+				Name:  "consumer.sflow.port",
 				Usage: "Port to consume sFlow on",
 				Value: 6343,
 			},
@@ -78,6 +88,11 @@ var Commands = []*cli.Command{
 				Name:  "web.root",
 				Usage: "The directory in which the UI lies",
 				Value: "./build/frontend",
+			},
+			&cli.StringFlag{
+				Name:  "web.address",
+				Usage: "Address to listen on web traffic",
+				Value: "",
 			},
 			&cli.IntFlag{
 				Name:  "web.port",

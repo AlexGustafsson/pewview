@@ -10,16 +10,17 @@ import (
 )
 
 func serveCommand(context *cli.Context) error {
-	address := context.String("address")
+	enableIPFIX := context.Bool("consumer.ipfix")
+	ipfixAddress := context.String("consumer.ipfix.address")
+	ipfixPort := context.Int("consumer.ipfix.port")
 
-	enableIPFIX := context.Bool("ipfix")
-	ipfixPort := context.Int("ipfix.port")
+	enableNetFlow := context.Bool("consumer.netflow")
+	netFlowAddress := context.String("consumer.netflow.address")
+	netFlowPort := context.Int("consumer.netflow.port")
 
-	enableNetFlow := context.Bool("netflow")
-	netFlowPort := context.Int("netflow.port")
-
-	enableSFlow := context.Bool("sflow")
-	sFlowPort := context.Int("sflow.port")
+	enableSFlow := context.Bool("consumer.sflow")
+	sFlowAddress := context.String("consumer.sflow.address")
+	sFlowPort := context.Int("consumer.sflow.port")
 
 	enableGeoLite := context.Bool("geoip.geolite")
 	geoLitePath := context.String("geoip.geolite.path")
@@ -30,6 +31,7 @@ func serveCommand(context *cli.Context) error {
 	enableIPAPI := context.Bool("geoip.ipapi")
 
 	webRoot := context.String("web.root")
+	webAddress := context.String("web.address")
 	webPort := context.Int("web.port")
 
 	if !enableIPFIX && !enableNetFlow && !enableSFlow {
@@ -68,22 +70,25 @@ func serveCommand(context *cli.Context) error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	server := &pewview.Server{
-		Address: address,
 		Workers: 1,
 
-		EnableIPFIX: enableIPFIX,
-		IPFIXPort:   ipfixPort,
+		EnableIPFIX:  enableIPFIX,
+		IPFIXAddress: ipfixAddress,
+		IPFIXPort:    ipfixPort,
 
-		EnableNetFlow: enableNetFlow,
-		NetFlowPort:   netFlowPort,
+		EnableNetFlow:  enableNetFlow,
+		NetFlowAddress: netFlowAddress,
+		NetFlowPort:    netFlowPort,
 
-		EnableSFlow: enableSFlow,
-		SFlowPort:   sFlowPort,
+		EnableSFlow:  enableSFlow,
+		SFlowAddress: sFlowAddress,
+		SFlowPort:    sFlowPort,
 
 		GeoIP: geoIP,
 
-		WebRoot: webRoot,
-		WebPort: webPort,
+		WebRoot:    webRoot,
+		WebAddress: webAddress,
+		WebPort:    webPort,
 	}
 
 	return server.Start()
