@@ -1,16 +1,20 @@
 package pewview
 
 import (
-	"encoding/json"
 	flowmessage "github.com/cloudflare/goflow/v3/pb"
+	goflow "github.com/cloudflare/goflow/v3/utils"
 	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 // Transport is a custom transport used for handling incoming messages
 type Transport struct {
-	Server     *Server
+	Server *Server
+	// Window size in seconds
 	WindowSize float64
+	Callback   func(*State)
 	state      *State
+	goflow.Transport
 }
 
 // NewTransport creates a new transport
@@ -40,17 +44,8 @@ func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 			// NOTE: Doing it this way assumes that there is a steady stream of incoming
 			// messages. If there are non for a while, the deadline will be missed.
 			// Consider rewriting this functionality using a parallel pub-sub model instead
-			window, err := transport.state.Summarize()
-			if err != nil {
-				log.Errorf("Unable to summarize window: %v", err)
-			}
-
-			encodedWindow, err := json.Marshal(window)
-			if err != nil {
-				log.Errorf("Unable to encode window as JSON: %v", err)
-			}
-
-			log.Infof("%v", encodedWindow)
+			transport.state.End = time.Now()
+			transport.Callback(transport.state)
 
 			transport.state = NewState(transport.Server)
 		}

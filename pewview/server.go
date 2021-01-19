@@ -38,7 +38,7 @@ type Server struct {
 	SFlowPort    int
 	sFlow        *goflow.StateSFlow
 
-	transport goflow.Transport
+	transport *Transport
 
 	GeoIP geoip.GeoIP
 
@@ -122,13 +122,18 @@ func (server *Server) startWeb(errorGroup *errgroup.Group) {
 	})
 }
 
+func (server *Server) handleWindow(state *State) {
+	log.Infof("Got state with %v connections between %v and %v", len(state.Connections), state.Start, state.End)
+}
+
 // Start the server using the configured values
 func (server *Server) Start() error {
 	if server.Workers <= 0 {
 		server.Workers = 1
 	}
 
-	server.transport = NewTransport(server, 60)
+	server.transport = NewTransport(server, 5)
+	server.transport.Callback = server.handleWindow
 
 	log.Info("Starting PewView")
 
