@@ -29,11 +29,13 @@ export default class Controller {
   constructor({
     element,
     object,
-    objectContainer
+    objectContainer,
+    stars
   }) {
     this.element = element;
     this.object = object;
     this.objectContainer = objectContainer;
+    this.stars = stars;
 
     this.dragging = false;
     this.mouse = new Vector2(.5, .5);
@@ -115,11 +117,13 @@ export default class Controller {
     let velocityX = 0;
     let velocityY = 0;
 
+    const previousTargetY = this.target.y;
     if (this.dragging) {
       velocityX = this.mouse.x - this.lastMouse.x
       velocityY = this.mouse.y - this.lastMouse.y
       this.target.y = Nl(this.target.y - velocityY, -MAX_ROTATION, .6 * MAX_ROTATION)
     }
+    const targetYChanged = this.target.y !== previousTargetY;
 
     this.objectContainer.rotation.x += (this.target.y + START_ROTATION.x - this.objectContainer.rotation.x) * EASING;
     this.target.x += (velocityX - this.target.x) * EASING;
@@ -131,5 +135,10 @@ export default class Controller {
     this.autoRotationSpeedScalar += .05 * (this.autoRotationSpeedScalarTarget - this.autoRotationSpeedScalar);
     this.lastMouse.copy(this.mouse);
     this.velocity.set(velocityX, velocityY);
+    if (this.stars) {
+      this.stars.uniforms.offset.value.x += (velocityX + this.autoRotationSpeedScalar * AUTO_ROTATION_SPEED * 0.01) * deltaTime * 10000;
+      if (targetYChanged)
+        this.stars.uniforms.offset.value.y += velocityY * deltaTime * 10000;
+    }
   }
 }

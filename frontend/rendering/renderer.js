@@ -19,6 +19,7 @@ import {IS_MOBILE} from "./utils"
 import Controller from "./controller"
 import Halo from "./halo"
 import WorldMap from "./world-map"
+import Stars from "./stars"
 
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
@@ -89,6 +90,11 @@ export default class Renderer {
     });
     this.container.add(this.globe.mesh);
 
+    this.starsContainer = new Group();
+    this.scene.add(this.starsContainer);
+    this.stars = new Stars(GLOBE_RADIUS);
+    this.starsContainer.add(this.stars.mesh);
+
     this.worldMap = null;
     new TextureLoader().load("/static/map.png", texture => {
       this.worldMap = new WorldMap(GLOBE_RADIUS, texture);
@@ -142,7 +148,8 @@ export default class Renderer {
     this.inputController = new Controller({
       element,
       object: this.container,
-      objectContainer: this.parentContainer
+      objectContainer: this.parentContainer,
+      stars: this.stars
     });
 
     window.addEventListener("resize", () => this.updateSize());
@@ -172,9 +179,11 @@ export default class Renderer {
         this.parentContainer.position.set(0, 0, 0);
         this.parentContainer.scale.set(containerScale, containerScale, containerScale);
         this.haloContainer.scale.set(containerScale, containerScale, containerScale);
+        this.starsContainer.scale.set(containerScale, containerScale, containerScale);
       }
 
       this.haloContainer.position.set(0, 0, -10);
+      this.starsContainer.position.set(0, 0, -20);
 
       this.lights.light1.position.set(this.parentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
       this.lights.light1.distance = 120 * containerScale;
@@ -240,6 +249,8 @@ export default class Renderer {
       this.debugUI.update(deltaTime);
     if (this.halo)
       this.halo.update(deltaTime);
+    if (this.stars)
+      this.stars.update(deltaTime);
 
     if (this.isRunning)
       requestAnimationFrame(this.update);
