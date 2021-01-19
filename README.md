@@ -76,7 +76,7 @@ git clone https://github.com/AlexGustafsson/pewview.git && cd pewview
 Optionally check out a specific version.
 
 ```sh
-git checkout v0.1.0
+git checkout v0.2.0
 ```
 
 Build the application and frontend.
@@ -95,7 +95,7 @@ Usage: pewview [global options] command [command options] [arguments]
 
 Visualize internet traffic
 
-Version: v0.1.0, build 14844a6. Built Tue Jan  5 16:27:00 CET 2021 using go version go1.15.6 darwin/amd64
+Version: v0.2.0, build 920cc38. Built Tue Jan 19 11:57:17 CET 2021 using go version go1.15.6 darwin/amd64
 
 Options:
   --verbose   Enable verbose logging (default: false)
@@ -117,26 +117,29 @@ Usage: pewview serve [options] [arguments]
 Start the server
 
 Options:
-   --consumer.ipfix                  Enable IPFIX / NetFlow v9 (default: false)
-   --consumer.ipfix.address value    Address to listen on for IPFIX / NetFlow v9 traffic
-   --consumer.ipfix.port value       Port to consume IPFIX / NetFlow v9 on (default: 2055)
-   --consumer.netflow                Enable NetFlow v5 (default: false)
-   --consumer.netflow.address value  Address to listen on for NetFlow v5 traffic
-   --consumer.netflow.port value     Port to consume NetFlow v5 on (default: 2056)
-   --consumer.sflow                  Enable sFlow (default: false)
-   --consumer.sflow.address value    Address to listen on for sFlow traffic
-   --consumer.sflow.port value       Port to consume sFlow on (default: 6343)
-   --geoip.geolite                   Use GeoLite2 as a GeoIP database (default: false)
-   --geoip.geolite.path value        Path to GeoLite2-City.mmdb
-   --geoip.ipgeolocation             Use ipgeolocation.io as a GeoIP database (default: false)
-   --geoip.ipgeolocation.key value   API key for ipgeolocation.io
-   --geoip.ipapi                     Use ip-api.com as a GeoIP database (default: false)
-   --web.root value                  The directory in which the UI lies (default: "./build/frontend")
-   --web.address value               Address to listen on web traffic
-   --web.port value                  The port to use for web traffic (UI / API) (default: 8080)
-   --metrics.bytes                   Expose number of bytes sent in a connection (default: false)
-   --metrics.source-address          Expose source address of a connection (default: false)
-   --metrics.destination-address     Expose destination address of a connection (default: false)
+   --consumer.ipfix                      Enable IPFIX / NetFlow v9 (default: false)
+   --consumer.ipfix.address value        Address to listen on for IPFIX / NetFlow v9 traffic
+   --consumer.ipfix.port value           Port to consume IPFIX / NetFlow v9 on (default: 2055)
+   --consumer.netflow                    Enable NetFlow v5 (default: false)
+   --consumer.netflow.address value      Address to listen on for NetFlow v5 traffic
+   --consumer.netflow.port value         Port to consume NetFlow v5 on (default: 2056)
+   --consumer.sflow                      Enable sFlow (default: false)
+   --consumer.sflow.address value        Address to listen on for sFlow traffic
+   --consumer.sflow.port value           Port to consume sFlow on (default: 6343)
+   --geoip.geolite                       Use GeoLite2 as a GeoIP database (default: false)
+   --geoip.geolite.path value            Path to GeoLite2-City.mmdb
+   --geoip.ipgeolocation                 Use ipgeolocation.io as a GeoIP database (default: false)
+   --geoip.ipgeolocation.key value       API key for ipgeolocation.io
+   --geoip.ipapi                         Use ip-api.com as a GeoIP database (default: false)
+   --web.root value                      The directory in which the UI lies (default: "./build/frontend")
+   --web.address value                   Address to listen on web traffic
+   --web.port value                      The port to use for web traffic (UI / API) (default: 8080)
+   --metrics.window value                The number of seconds to summarize in a block (default: 60)
+   --metrics.expose.bytes                Expose number of bytes sent in a connection (default: false)
+   --metrics.expose.source-address       Expose source address of a connection (default: false)
+   --metrics.expose.source-port          Expose source port of a connection (default: false)
+   --metrics.expose.destination-address  Expose destination address of a connection (default: false)
+   --metrics.expose.destination-port     Expose destination port of a connection (default: false)
 ```
 
 ## IP Geolocation configuration
