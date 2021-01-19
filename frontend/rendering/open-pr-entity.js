@@ -119,13 +119,32 @@ export default class OpenPREntity {
                 maxDensity: I
             } = P;
         let D = 0;
-        for (let U = 0; U < t; U++) {
-            const t = e[U],
+        for (let U = 0; U < e.Connections.length; U++) {
+          /*
+          {
+            "uml": "Shanghai",
+            "gm": {
+              "lat": 31.16667,
+              "lon": 121.46667
+            },
+            "uol": "Shanghai",
+            "gop": {
+              "lat": 31.16667,
+              "lon": 121.46667
+            },
+            "l": "JavaScript",
+            "nwo": "kaiyuanshe/open-hackathon",
+            "pr": 843,
+            "ma": "2021-01-13 02:41:59.000",
+            "oa": "2021-01-13 02:41:51.000"
+          },
+          */
+            const t = e.Connections[U],
                 {
-                    gop: i
+                    Source: i
                 } = t,
                 r = i;
-            Rl(r.lat, r.lon, n, L.position);
+            Rl(r.Latitude, r.Longitude, n, L.position);
             const s = C[D++];
             L.scale.z = Dl(s, R, I, .05 * n, .2 * n), L.lookAt(wl), L.updateMatrix(), M.setMatrixAt(U, L.matrix), m.setMatrixAt(U, L.matrix), Rl(r.lat, r.lon, n + L.scale.z + .25, L.position), E.push(L.position.x, L.position.y, L.position.z), T.push(A.r, A.g, A.b)
         }
@@ -163,13 +182,13 @@ export default class OpenPREntity {
             maxAmount: e = 1e3,
             radius: n
         } = this.props, i = new Vector3, r = [], s = [];
-        for (let h = 0; h < e; h++) {
-            const e = t[h],
+        for (let h = 0; h < t.Connections.length; h++) {
+            const e = t.Connections[h],
                 {
-                    gop: o
+                    Source: o
                 } = e,
                 c = o;
-            c && c.lat && c.lon && (Rl(c.lat, c.lon, n, i), r.push((new Vector3).copy(i)), s.push(0))
+            c && c.Latitude && c.Longitude && (Rl(c.Latitude, c.Longitude, n, i), r.push((new Vector3).copy(i)), s.push(0))
         }
         let o = 99999,
             c = -1;

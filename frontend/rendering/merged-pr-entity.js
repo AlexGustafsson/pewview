@@ -105,15 +105,34 @@ export default class MergedPREntity {
         this.hiddenMaterial = new MeshBasicMaterial({
             visible: false
         });
-        for (let x = 0; x < i; x++) {
+        for (let x = 0; x < t.Connections.length; x++) {
+          /*
+          {
+            "uml": "Shanghai",
+            "gm": {
+              "lat": 31.16667,
+              "lon": 121.46667
+            },
+            "uol": "Shanghai",
+            "gop": {
+              "lat": 31.16667,
+              "lon": 121.46667
+            },
+            "l": "JavaScript",
+            "nwo": "kaiyuanshe/open-hackathon",
+            "pr": 843,
+            "ma": "2021-01-13 02:41:59.000",
+            "oa": "2021-01-13 02:41:51.000"
+          },
+          */
             const {
-                gop: n,
-                gm: i
-            } = t[x], r = n, s = i, o = Rl(r.lat, r.lon, e), c = Rl(s.lat, s.lon, e), h = o.distanceTo(c);
+                Source: n,
+                Destination: i
+            } = t.Connections[x], r = n, s = i, o = Rl(r.Latitude, r.Longitude, e), c = Rl(s.Latitude, s.Longitude, e), h = o.distanceTo(c);
             if (h > 1.5) {
                 let t;
                 t = Dl(h, 0, 2 * e, 1, h > 1.85 * e ? 3.25 : h > 1.4 * e ? 2.3 : 1.5);
-                const n = Cl(r.lat, r.lon, s.lat, s.lon),
+                const n = Cl(r.Latitude, r.Longitude, s.Latitude, s.Longitude),
                     i = Rl(n[0], n[1], e * t);
                 d.copy(i), f.copy(i);
                 const u = Dl(h, 10, 30, .2, .15),
@@ -122,8 +141,8 @@ export default class MergedPREntity {
                 const y = new CubicBezierCurve3(o, d, f, c);
                 y.getPoint(u, d), y.getPoint(m, f), d.multiplyScalar(t), f.multiplyScalar(t);
                 const b = new CubicBezierCurve3(o, d, f, c),
-                    w = Rl(s.lat, s.lon, e + x / 1e4),
-                    M = Rl(s.lat, s.lon, e + 5);
+                    w = Rl(s.Latitude, s.Longitude, e + x / 1e4),
+                    M = Rl(s.Latitude, s.Longitude, e + 5);
                 this.landings.push({
                     pos: w,
                     lookAt: M

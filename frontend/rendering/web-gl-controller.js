@@ -198,16 +198,17 @@ export default class WebGLController {
     this.maxIndexDistance = 60;
     this.indexIncrementSpeed = 15;
     this.visibleIndex = 60;
-    this.openPrEntity = new OpenPREntity({
-      data: t,
-      maxAmount: this.maxAmount,
-      radius: this.radius,
-      camera: this.camera,
-      maxIndexDistance: this.maxIndexDistance,
-      indexIncrementSpeed: this.indexIncrementSpeed,
-      visibleIndex: this.visibleIndex,
-      colors: e
-    }), this.mergedPrEntity = new MergedPREntity({
+    // this.openPrEntity = new OpenPREntity({
+    //   data: t,
+    //   maxAmount: this.maxAmount,
+    //   radius: this.radius,
+    //   camera: this.camera,
+    //   maxIndexDistance: this.maxIndexDistance,
+    //   indexIncrementSpeed: this.indexIncrementSpeed,
+    //   visibleIndex: this.visibleIndex,
+    //   colors: e
+    // });
+    this.mergedPrEntity = new MergedPREntity({
       data: t,
       maxAmount: this.maxAmount,
       radius: this.radius,
@@ -225,7 +226,12 @@ export default class WebGLController {
       parentSelector: ".js-webgl-globe-data",
       domElement: this.renderer.domElement,
       controls: this.controls
-    }), this.dataItem = {}, this.intersectTests.push(this.globe.meshFill), this.intersectTests.push(this.openPrEntity.spikeIntersects), this.intersectTests.push(...this.mergedPrEntity.lineHitMeshes), this.intersects = []
+    });
+    this.dataItem = {};
+    this.intersectTests.push(this.globe.meshFill);
+    // this.intersectTests.push(this.openPrEntity.spikeIntersects);
+    this.intersectTests.push(...this.mergedPrEntity.lineHitMeshes);
+    this.intersects = []
   }
   updateRenderQuality() {
     4 == this.renderQuality ? this.initRegularQuality() : 3 == this.renderQuality ? this.initMediumQuality() : 2 == this.renderQuality ? this.initLowQuality() : 1 == this.renderQuality && this.initLowestQuality()
@@ -432,7 +438,8 @@ export default class WebGLController {
   }
   transitionIn() {
     return new Promise((() => {
-      this.container.add(this.openPrEntity.mesh), this.container.add(this.mergedPrEntity.mesh)
+      // this.container.add(this.openPrEntity.mesh);
+      this.container.add(this.mergedPrEntity.mesh)
     }))
   }
   handleUpdate() {
@@ -457,7 +464,7 @@ export default class WebGLController {
             r = this.setMergedPrEntityDataItem(n), s = true;
             break
           }
-          if (n === this.openPrEntity.spikeIntersects && this.shouldShowOpenPrEntity(e)) {
+          if (this.openPrEntity && n === this.openPrEntity.spikeIntersects && this.shouldShowOpenPrEntity(e)) {
             r = this.setOpenPrEntityDataItem(e), s = true;
             break
           }
@@ -472,12 +479,12 @@ export default class WebGLController {
           }
         }
       }
-      s && r ? (this.setDataInfo(r), this.dataInfo.show()) : (this.dataInfo.hide(), this.openPrEntity.setHighlightIndex(-9999), this.mergedPrEntity.resetHighlight(), this.resetArcticCodeVaultHighlight(), this.dataItem = null, bl.isMobile && (this.mouse = {
+      s && r ? (this.setDataInfo(r), this.dataInfo.show()) : (this.dataInfo.hide(), this.openPrEntity && this.openPrEntity.setHighlightIndex(-9999), this.mergedPrEntity.resetHighlight(), this.resetArcticCodeVaultHighlight(), this.dataItem = null, bl.isMobile && (this.mouse = {
         x: -9999,
         y: -9999
       }))
     }
-    this.dragging && (this.dataInfo.hide(), this.openPrEntity.setHighlightIndex(-9999), this.mergedPrEntity.resetHighlight(), this.resetArcticCodeVaultHighlight()), this.dataInfo.isVisible && this.dataInfo.update(i, this.canvasOffset), this.raycastIndex++ , this.raycastIndex >= this.raycastTrigger && (this.raycastIndex = 0), this.render()
+    this.dragging && (this.dataInfo.hide(), this.openPrEntity && this.openPrEntity.setHighlightIndex(-9999), this.mergedPrEntity.resetHighlight(), this.resetArcticCodeVaultHighlight()), this.dataInfo.isVisible && this.dataInfo.update(i, this.canvasOffset), this.raycastIndex++ , this.raycastIndex >= this.raycastTrigger && (this.raycastIndex = 0), this.render()
   }
   update() {
     this.handleUpdate(), this.hasLoaded || this.sceneDidLoad(), this.rafID = requestAnimationFrame(this.update)
@@ -515,17 +522,19 @@ export default class WebGLController {
     }))
   }
   setMergedPrEntityDataItem(t) {
-    this.mergedPrEntity.setHighlightObject(t), this.openPrEntity.setHighlightIndex(-9999);
-    const e = this.mergedPrEntity.props.data[parseInt(t.userData.dataIndex)];
+    this.mergedPrEntity.setHighlightObject(t);
+    // this.openPrEntity.setHighlightIndex(-9999);
+    const e = this.mergedPrEntity.props.data.Connections[parseInt(t.userData.dataIndex)];
     return e.type = dl, e
   }
   shouldShowOpenPrEntity(t) {
     return t >= this.visibleIndex - this.maxIndexDistance && t <= this.visibleIndex + this.maxIndexDistance
   }
   setOpenPrEntityDataItem(t) {
-    this.openPrEntity.setHighlightIndex(t), this.mergedPrEntity.resetHighlight();
-    const e = this.openPrEntity.props.data[t];
-    return e.type = ul, e
+    // this.openPrEntity.setHighlightIndex(t);
+    this.mergedPrEntity.resetHighlight();
+    // const e = this.openPrEntity.props.data.Connections[t];
+    // return e.type = ul, e
   }
   dispose() {
     this.stopUpdating(), this.removeListeners(), messageBus.off(EVENT_PAUSE, this.handlePause), messageBus.off(EVENT_RESUME, this.handleResume), this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode && this.renderer.domElement.parentNode.removeChild(this.renderer.domElement), this.controls && this.controls.dispose(), this.globe && this.globe.dispose(), this.openPrEntity && this.openPrEntity.dispose(), this.mergedPrEntity && this.mergedPrEntity.dispose(), this.dataInfo && this.dataInfo.dispose(), this.scene = null, this.camera = null, this.renderer = null, this.parentContainer = null, this.container = null, this.clock = null, this.mouse = null, this.mouseScreenPos = null, this.raycaster = null, this.paused = null, this.radius = null, this.light0 = null, this.light1 = null, this.light2 = null, this.light3 = null, this.shadowPoint = null, this.highlightPoint = null, this.frontPoint = null, this.globe = null, this.dragging = null, this.rotationSpeed = null, this.raycastIndex = null, this.raycastTrigger = null, this.raycastTargets = null, this.intersectTests = null, this.controls = null, this.maxAmount = null, this.maxIndexDistance = null, this.indexIncrementSpeed = null, this.visibleIndex = null, this.openPrEntity = null

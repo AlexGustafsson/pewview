@@ -21,25 +21,12 @@ export default class App {
       bl[key] = value;
   }
 
-  filterData(t) {
-    const e = [];
-    for (let r = 0; r < t.length; r++) {
-        const n = t[r],
-            i = n.gop,
-            s = n.gm;
-        (i || s) && (n.gop = i || s, n.gm = s || i, n.uol = n.uol || n.uml, n.uml = n.uml || n.uol, n.gop.lat && n.gop.lon && n.gm.lat && n.gm.lon && (n.oa || n.ma) && e.splice(Math.floor(Math.random() * e.length), 0, n))
-    }
-    const n = e.slice(e.length - 60, e.length),
-        i = e.slice(0, 60);
-    return n.concat(e, i)
-  }
-
   async init() {
     const worldMap = await new Promise((resolve, reject) => {
       new TextureLoader().load("/static/map.png", texture => resolve(texture), null, error => reject(error));
     });
 
-    const dataRequest = await fetch("/static/data.json", {
+    const dataRequest = await fetch("/api/v1/buckets/latest", {
       method: "GET",
       mode: "cors",
       headers: {
@@ -48,7 +35,7 @@ export default class App {
     });
     const data = await dataRequest.json();
 
-    bl.data = this.filterData(data);
+    bl.data = data;
     this.webglController = new WebGLController({element: bl.parentNode, isMobile: this.options.isMobile, globeRadius: this.options.globeRadius});
     this.webglController.initDataObjects(bl.data, worldMap);
     this.webglController.transitionIn(1.5, .6);
