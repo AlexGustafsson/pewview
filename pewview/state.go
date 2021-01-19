@@ -5,6 +5,7 @@ import (
 	"github.com/AlexGustafsson/pewview/geoip"
 	flowmessage "github.com/cloudflare/goflow/v3/pb"
 	log "github.com/sirupsen/logrus"
+	"net"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type State struct {
 	Server      *Server
 	Start       time.Time
 	End         time.Time
+	Window      float64
 	Connections map[string]*Connection
 }
 
@@ -21,16 +23,21 @@ type Connection struct {
 	Start               time.Time
 	End                 time.Time
 	Messages            []*flowmessage.FlowMessage
+	SourceAddress       net.IP
+	SourcePort          uint32
 	SourceLocation      *geoip.LookupResult
+	DestinationAddress  net.IP
+	DestinationPort     uint32
 	DestinationLocation *geoip.LookupResult
 }
 
 // NewState ...
-func NewState(server *Server) *State {
+func NewState(server *Server, window float64) *State {
 	return &State{
 		Server:      server,
 		Start:       time.Now(),
 		End:         time.Time{},
+		Window:      window,
 		Connections: make(map[string]*Connection),
 	}
 }
@@ -51,6 +58,10 @@ func (state *State) Push(message *flowmessage.FlowMessage) {
 	connection, exists := state.Connections[id]
 	if !exists {
 		connection = NewConnection()
+		connection.SourceAddress = message.SrcAddr
+		connection.SourcePort = message.SrcPort
+		connection.DestinationAddress = message.DstAddr
+		connection.DestinationPort = message.DstPort
 		state.Connections[id] = connection
 
 		pair, err := geoip.LookupPair(state.Server.GeoIP, message.SrcAddr, message.DstAddr)

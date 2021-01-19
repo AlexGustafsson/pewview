@@ -43,15 +43,21 @@ type Metrics struct {
 	Bytes uint64 `json:",omitempty"`
 	// Source Address of the connection
 	SourceAddress net.IP `json:",omitempty"`
+	// Source Port of the connection
+	SourcePort uint32 `json:",omitempty"`
 	// Destination Address of the connection
 	DestinationAddress net.IP `json:",omitempty"`
+	// Destination Port of the connection
+	DestinationPort uint32 `json:",omitempty"`
 }
 
 // MetricsConfiguration configures what to include in connections' metrics
 type MetricsConfiguration struct {
 	IncludeBytes              bool
 	IncludeSourceAddress      bool
+	IncludeSourcePort         bool
 	IncludeDestinationAddress bool
+	IncludeDestinationPort    bool
 }
 
 // NewBucket creates a new bucket
@@ -70,6 +76,11 @@ func (bucket *Bucket) AddConnection(connection *Connection) {
 
 // Strip removes all non-visisble metrics
 func (bucket *Bucket) Strip(config *MetricsConfiguration) {
+	// TODO: This is not really a great idea.
+	// First, it scales badly - three rows per entry
+	// Second, it forces default values for ports etc.
+	// Third, it does not provide secure defaults - every time a new field
+	// is added, if it is not added here, it will leak information
 	for _, connection := range bucket.Connections {
 		if connection.Metrics == nil {
 			continue
@@ -85,6 +96,14 @@ func (bucket *Bucket) Strip(config *MetricsConfiguration) {
 
 		if !config.IncludeDestinationAddress {
 			connection.Metrics.DestinationAddress = nil
+		}
+
+		if !config.IncludeSourcePort {
+			connection.Metrics.SourcePort = 0
+		}
+
+		if !config.IncludeDestinationPort {
+			connection.Metrics.DestinationPort = 0
 		}
 	}
 }

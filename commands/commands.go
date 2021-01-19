@@ -99,19 +99,34 @@ var Commands = []*cli.Command{
 				Usage: "The port to use for web traffic (UI / API)",
 				Value: 8080,
 			},
+			&cli.Float64Flag{
+				Name:  "metrics.window",
+				Usage: "The number of seconds to summarize in a block",
+				Value: 60,
+			},
 			&cli.BoolFlag{
-				Name:  "metrics.bytes",
+				Name:  "metrics.expose.bytes",
 				Usage: "Expose number of bytes sent in a connection",
 				Value: false,
 			},
 			&cli.BoolFlag{
-				Name:  "metrics.source-address",
+				Name:  "metrics.expose.source-address",
 				Usage: "Expose source address of a connection",
 				Value: false,
 			},
 			&cli.BoolFlag{
-				Name:  "metrics.destination-address",
+				Name:  "metrics.expose.source-port",
+				Usage: "Expose source port of a connection",
+				Value: false,
+			},
+			&cli.BoolFlag{
+				Name:  "metrics.expose.destination-address",
 				Usage: "Expose destination address of a connection",
+				Value: false,
+			},
+			&cli.BoolFlag{
+				Name:  "metrics.expose.destination-port",
+				Usage: "Expose destination port of a connection",
 				Value: false,
 			},
 		},

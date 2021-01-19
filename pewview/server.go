@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -47,6 +48,9 @@ type Server struct {
 	WebPort    int
 
 	MetricsConfiguration *v1.MetricsConfiguration
+
+	api    *v1.API
+	Window float64
 }
 
 func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
@@ -90,21 +94,8 @@ func (server *Server) startWeb(errorGroup *errgroup.Group) {
 	router := mux.NewRouter()
 
 	// APIv1
-	api := v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), 60)
-	api.MetricsConfiguration = server.MetricsConfiguration
-
-	bucket := v1.NewBucket(uint64(time.Now().Unix()), float64(api.Window))
-	connection := &v1.Connection{
-		VisibleOrigin:   0,
-		VisibleDuration: 1,
-		Source:          v1.NewCoordinate(10.5, 2.5),
-		Destination:     v1.NewCoordinate(10.5, 2.5),
-		Metrics: &v1.Metrics{
-			Bytes: 100,
-		},
-	}
-	bucket.AddConnection(connection)
-	api.AddBucket(bucket)
+	server.api = v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), server.Window)
+	server.api.MetricsConfiguration = server.MetricsConfiguration
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
@@ -122,8 +113,43 @@ func (server *Server) startWeb(errorGroup *errgroup.Group) {
 	})
 }
 
-func (server *Server) handleWindow(state *State) {
+func (server *Server) handleState(state *State) {
 	log.Infof("Got state with %v connections between %v and %v", len(state.Connections), state.Start, state.End)
+	bucket := v1.NewBucket(uint64(time.Now().Unix())-uint64(state.Window), state.Window)
+	for _, connection := range state.Connections {
+		if !connection.SourceLocation.HasCoordinates() || !connection.DestinationLocation.HasCoordinates() {
+			log.Debugf("Skipping connectiong with missing location")
+			continue
+		}
+
+		bytes := uint64(0)
+		for _, message := range connection.Messages {
+			bytes += message.Bytes
+		}
+
+		v1connection := &v1.Connection{
+			VisibleOrigin:   math.Max(float64(connection.Start.Unix())-float64(bucket.Origin), 0),
+			VisibleDuration: connection.Duration().Seconds(),
+			Metrics: &v1.Metrics{
+				Bytes:              bytes,
+				SourceAddress:      connection.SourceAddress,
+				SourcePort:         connection.SourcePort,
+				DestinationAddress: connection.DestinationAddress,
+				DestinationPort:    connection.DestinationPort,
+			},
+		}
+
+		if connection.SourceLocation != nil {
+			v1connection.Source = v1.NewCoordinate(connection.SourceLocation.Latitude, connection.SourceLocation.Longitude)
+		}
+
+		if connection.DestinationLocation != nil {
+			v1connection.Destination = v1.NewCoordinate(connection.DestinationLocation.Latitude, connection.DestinationLocation.Longitude)
+		}
+
+		bucket.AddConnection(v1connection)
+	}
+	server.api.AddBucket(bucket)
 }
 
 // Start the server using the configured values
@@ -132,8 +158,8 @@ func (server *Server) Start() error {
 		server.Workers = 1
 	}
 
-	server.transport = NewTransport(server, 5)
-	server.transport.Callback = server.handleWindow
+	server.transport = NewTransport(server, server.Window)
+	server.transport.Callback = server.handleState
 
 	log.Info("Starting PewView")
 

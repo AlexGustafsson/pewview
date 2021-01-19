@@ -35,10 +35,13 @@ func serveCommand(context *cli.Context) error {
 	webAddress := context.String("web.address")
 	webPort := context.Int("web.port")
 
+	metricsWindow := context.Float64("metrics.window")
 	metricsConfiguration := &v1.MetricsConfiguration{
-		IncludeBytes:              context.Bool("metrics.bytes"),
-		IncludeSourceAddress:      context.Bool("metrics.source-address"),
-		IncludeDestinationAddress: context.Bool("metrics.destination-address"),
+		IncludeBytes:              context.Bool("metrics.expose.bytes"),
+		IncludeSourceAddress:      context.Bool("metrics.expose.source-address"),
+		IncludeSourcePort:         context.Bool("metrics.expose.source-port"),
+		IncludeDestinationAddress: context.Bool("metrics.expose.destination-address"),
+		IncludeDestinationPort:    context.Bool("metrics.expose.destination-port"),
 	}
 
 	if !enableIPFIX && !enableNetFlow && !enableSFlow {
@@ -98,6 +101,8 @@ func serveCommand(context *cli.Context) error {
 		WebPort:    webPort,
 
 		MetricsConfiguration: metricsConfiguration,
+
+		Window: metricsWindow,
 	}
 
 	return server.Start()

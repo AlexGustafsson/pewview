@@ -15,13 +15,13 @@ type API struct {
 	buckets      map[uint64]*Bucket
 	latestBucket uint64
 	Origin       uint64
-	Window       uint64
+	Window       float64
 	// MetricsConfiguration configures what should be kept on ingest
 	MetricsConfiguration *MetricsConfiguration
 }
 
 // NewAPI creates a new API context
-func NewAPI(router *mux.Router, window uint64) *API {
+func NewAPI(router *mux.Router, window float64) *API {
 	api := &API{
 		router:       router,
 		buckets:      make(map[uint64]*Bucket),
@@ -44,7 +44,7 @@ func NewAPI(router *mux.Router, window uint64) *API {
 // AddBucket adds a bucket to the specified window. Overwrites any existing bucket
 func (api *API) AddBucket(bucket *Bucket) {
 	bucket.Strip(api.MetricsConfiguration)
-	window := (bucket.Origin - api.Origin) / api.Window
+	window := (bucket.Origin - api.Origin) / uint64(api.Window)
 	api.buckets[window] = bucket
 	if bucket.Origin > api.latestBucket {
 		api.latestBucket = bucket.Origin
@@ -53,7 +53,7 @@ func (api *API) AddBucket(bucket *Bucket) {
 
 // GetBucket returns a bucket based on some time window
 func (api *API) GetBucket(time uint64) *Bucket {
-	window := (time - api.Origin) / api.Window
+	window := (time - api.Origin) / uint64(api.Window)
 	bucket, _ := api.buckets[window]
 	return bucket
 }

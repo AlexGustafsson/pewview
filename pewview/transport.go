@@ -39,7 +39,7 @@ func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 	log.WithFields(log.Fields{"Type": "NetFlow"}).Debug("Handling incoming messages")
 	for _, message := range messages {
 		if transport.state == nil {
-			transport.state = NewState(transport.Server)
+			transport.state = NewState(transport.Server, transport.WindowSize)
 		} else if transport.state.Duration().Seconds() >= transport.WindowSize {
 			// NOTE: Doing it this way assumes that there is a steady stream of incoming
 			// messages. If there are non for a while, the deadline will be missed.
@@ -47,7 +47,7 @@ func (transport *Transport) Publish(messages []*flowmessage.FlowMessage) {
 			transport.state.End = time.Now()
 			transport.Callback(transport.state)
 
-			transport.state = NewState(transport.Server)
+			transport.state = NewState(transport.Server, transport.WindowSize)
 		}
 
 		transport.state.Push(message)
