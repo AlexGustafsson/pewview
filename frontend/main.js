@@ -1,40 +1,21 @@
-import App from "./rendering/app"
+import Renderer from "./rendering/renderer"
+import {supportsWebGL} from "./rendering/utils"
 
-const onLoaded = (document.readyState === "interactive" || document.readyState === "complete") ? Promise.resolve() : new Promise(resolve => {
-  document.addEventListener("DOMContentLoaded", () => {
-    resolve();
+async function main() {
+  const loaded = (document.readyState === "interactive" || document.readyState === "complete") ? Promise.resolve() : new Promise(resolve => {
+    document.addEventListener("DOMContentLoaded", () => {
+      resolve();
+    });
   });
-});
+  await loaded;
 
-onLoaded.then(() => {
-  const parentNode = document.querySelector(".js-webgl-globe");
-  if (parentNode)
-    console.log("Found element");
-  else
-    return console.error("No such element");
+  if (!supportsWebGL())
+    throw new Error("Client doesn't support WebGL");
 
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("webgl") || canvas.getContext("webgl2") || canvas.getContext("experimental-webgl");
-  if (context)
-    console.log("WebGL supported");
-  else
-    return console.error("WebGL not supported");
+  const container = document.getElementById("globe");
+  const renderer = new Renderer({debug: true});
+  renderer.mount(container);
+  renderer.start();
+}
 
-  const globe = new App({
-    basePath: "/",
-    imagePath: "static/",
-    dataPath: "static/",
-    parentNode: parentNode,
-    globeRadius: 25,
-    lineWidth: 1.5,
-    spikeRadius: .06
-  });
-
-  globe.init().then((() => {
-    globe.canvas.addEventListener("webglcontextlost", () => {
-      console.error("Lost WebGL context");
-      // Ol was originally a function to replace the webgl with a static image
-      // Ol()
-    }, false);
-  }))
-})
+main();

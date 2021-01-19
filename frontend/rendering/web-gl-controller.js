@@ -28,9 +28,6 @@ import OpenPREntity from "./open-pr-entity"
 import Arch from "./arch"
 import { bl, messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME, ul, dl } from "./globals"
 
-import ATMOSPHERE_FRAGMENT_SHADER from "./shaders/atmosphere.frag";
-import ATMOSPHERE_VERTEX_SHADER from "./shaders/atmosphere.vert";
-
 const Ml = Math.PI / 180; //rad2deg
 
 // Same as open-pr
