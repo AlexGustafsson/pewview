@@ -26,14 +26,31 @@ export default class App {
       new TextureLoader().load("/static/map.png", texture => resolve(texture), null, error => reject(error));
     });
 
-    const dataRequest = await fetch("/api/v1/buckets/latest", {
-      method: "GET",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json"
+    let data = {Connections: []}
+    try {
+      const dataRequest = await fetch("/api/v1/buckets/latest", {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      data = await dataRequest.json();
+    } catch {
+      console.error("Unable to fetch data, trying fallback");
+      try {
+        const dataRequest = await fetch("/static/fallback.json", {
+          method: "GET",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        data = await dataRequest.json();
+      } catch {
+        console.error("Unable to fetch fallback data");
       }
-    });
-    const data = await dataRequest.json();
+    }
 
     bl.data = data;
     this.webglController = new WebGLController({element: bl.parentNode, isMobile: this.options.isMobile, globeRadius: this.options.globeRadius});
