@@ -44,8 +44,12 @@ void main()
 {
   vec3 vNormal = normalize( normalMatrix * normal );
   vec3 vNormel = normalize( normalMatrix * viewVector );
+  #ifdef ANIMATE_HALO
   float noise = perlinNoise(vec3(position.x / noiseScale, position.y / noiseScale, noiseSeed));
   intensity = pow( c - dot(vNormal, vNormel) + noise * noiseIntensity, p );
+  #else
+  intensity = pow( c - dot(vNormal, vNormel), p );
+  #endif
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 }
