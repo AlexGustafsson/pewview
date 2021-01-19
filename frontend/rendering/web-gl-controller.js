@@ -25,6 +25,7 @@ import Globe from "./globe"
 import Controller from "./controller"
 import MergedPREntity from "./merged-pr-entity"
 import OpenPREntity from "./open-pr-entity"
+import Arch from "./arch"
 import { bl, messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME, ul, dl } from "./globals"
 
 import ATMOSPHERE_FRAGMENT_SHADER from "./shaders/atmosphere.frag";
@@ -440,6 +441,15 @@ export default class WebGLController {
     return new Promise((() => {
       // this.container.add(this.openPrEntity.mesh);
       this.container.add(this.mergedPrEntity.mesh)
+
+      // TODO: Temporary
+      const arch = new Arch({
+        source: {latitude: 50.510986, longitude: 16.049161}, // "Europe"
+        destination: {latitude: 2.341285, longitude: 21.940375}, // "Africa"
+        globeRadius: this.radius,
+        colors: {normal: 0xff0000, highlighted: 0xffffff}
+      })
+      this.container.add(arch.mesh)
     }))
   }
   handleUpdate() {
