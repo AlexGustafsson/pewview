@@ -89,6 +89,7 @@ export default class Renderer {
     });
     this.container.add(this.globe.mesh);
 
+    this.worldMap = null;
     new TextureLoader().load("/static/map.png", texture => {
       this.worldMap = new WorldMap(GLOBE_RADIUS, texture);
       this.container.add(this.worldMap.mesh);
@@ -237,6 +238,8 @@ export default class Renderer {
     this.inputController.update(deltaTime);
     if (this.debugUI)
       this.debugUI.update(deltaTime);
+    if (this.halo)
+      this.halo.update(deltaTime);
 
     if (this.isRunning)
       requestAnimationFrame(this.update);
