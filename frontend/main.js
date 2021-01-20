@@ -13,7 +13,9 @@ async function main() {
     throw new Error("Client doesn't support WebGL");
 
   const container = document.getElementById("globe");
-  const renderer = new Renderer({debug: true});
+  const renderer = new Renderer({
+    debug: true,
+  });
   renderer.mount(container);
   renderer.start();
 }

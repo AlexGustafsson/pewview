@@ -12,7 +12,7 @@ import HALO_VERTEX_SHADER from "./shaders/halo.vert";
 export default class Halo {
   constructor(radius) {
     this.elapsedTime = 0;
-    this.animateHalo = true;
+    this.animate = false;
     this.uniforms = {
       c: {
         type: "f",
@@ -52,11 +52,6 @@ export default class Halo {
       transparent: true
     });
 
-    // Declare shader constants
-    this.material.defines = {
-      ANIMATE_HALO: this.animateHalo
-    };
-
     this.mesh = new Mesh(new SphereBufferGeometry(radius, 45, 45), this.material);
     this.mesh.scale.multiplyScalar(1.15);
     this.mesh.rotateX(.03 * Math.PI);
@@ -65,7 +60,7 @@ export default class Halo {
   }
 
   update(deltaTime) {
-    if (this.animateHalo) {
+    if (this.animate) {
       this.elapsedTime = (this.elapsedTime + deltaTime) % 1e3;
       this.uniforms.noiseSeed.value = this.elapsedTime / 2;
     }

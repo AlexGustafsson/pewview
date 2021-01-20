@@ -7,16 +7,18 @@ import {
 
 import {getImageData, coordinatesToEuler, radiansToDegrees} from "./utils"
 
-const WORLD_DOT_ROWS = 200;
-const WORLD_DOT_SIZE = 0.095;
-
 export default class WorldMap {
-  constructor(radius, texture) {
+  constructor({radius, texture, rows, size}) {
+    this.radius = radius;
+    this.texture = texture;
+    this.rows = rows;
+    this.size = size;
+
     // Create the world map
     const map = new Object3D();
     const image = getImageData(texture.image);
     const uniforms = [];
-    for (let latitude = -90; latitude <= 90; latitude += 180 / WORLD_DOT_ROWS) {
+    for (let latitude = -90; latitude <= 90; latitude += 180 / rows) {
       // The number of circles to draw (calculates the curvature of the earth for the distance)
       const t = Math.cos(radiansToDegrees(Math.abs(latitude))) * radius * Math.PI * 2 * 2;
       for (let r = 0; r < t; r++) {
@@ -33,7 +35,7 @@ export default class WorldMap {
       }
     }
 
-    const geometry = new CircleBufferGeometry(WORLD_DOT_SIZE, 5);
+    const geometry = new CircleBufferGeometry(size, 5);
     const material = new MeshStandardMaterial({
       color: 0x3a4494,
       metalness: 0,

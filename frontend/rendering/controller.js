@@ -30,12 +30,12 @@ export default class Controller {
     element,
     object,
     objectContainer,
-    stars
+    renderer,
   }) {
     this.element = element;
     this.object = object;
     this.objectContainer = objectContainer;
-    this.stars = stars;
+    this.renderer = renderer;
 
     this.dragging = false;
     this.mouse = new Vector2(.5, .5);
@@ -135,10 +135,10 @@ export default class Controller {
     this.autoRotationSpeedScalar += .05 * (this.autoRotationSpeedScalarTarget - this.autoRotationSpeedScalar);
     this.lastMouse.copy(this.mouse);
     this.velocity.set(velocityX, velocityY);
-    if (this.stars) {
-      this.stars.uniforms.offset.value.x += (velocityX + this.autoRotationSpeedScalar * AUTO_ROTATION_SPEED * 0.01) * deltaTime * 10000;
+    if (this.renderer.stars && this.renderer.stars.animate) {
+      this.renderer.stars.uniforms.offset.value.x += (velocityX + this.autoRotationSpeedScalar * AUTO_ROTATION_SPEED * 0.01) * deltaTime * 10000;
       if (targetYChanged)
-        this.stars.uniforms.offset.value.y += velocityY * deltaTime * 10000;
+        this.renderer.stars.uniforms.offset.value.y += velocityY * deltaTime * 10000;
     }
   }
 }

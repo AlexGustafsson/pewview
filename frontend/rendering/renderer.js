@@ -31,7 +31,7 @@ const START_ROTATION = new Euler(.3, 4.6, .05)
 export default class Renderer {
   constructor({
     theme = new Theme(),
-    debug = false
+    debug = false,
   } = {}) {
     this.element = null;
 
@@ -44,7 +44,7 @@ export default class Renderer {
     this.clock = new Clock(false);
     this.fps = 0;
 
-    // Scene
+    // Rendering
     this.scene = new Scene();
     this.camera = new PerspectiveCamera(10, 1, 170, 260);
     this.camera.position.set(0, 0, 220);
@@ -57,7 +57,7 @@ export default class Renderer {
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setClearColor(this.theme.colors.background, 1);
 
-    // Setup the globe
+    // Scene
     this.parentContainer = new Group();
     this.scene.add(this.parentContainer);
     this.container = new Group();
@@ -66,10 +66,20 @@ export default class Renderer {
     const offset = (new Date()).getTimezoneOffset();
     rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
     this.parentContainer.rotation.copy(rotation);
+
+    // Setup the halo
     this.haloContainer = new Group();
     this.scene.add(this.haloContainer);
-    this.halo = new Halo(GLOBE_RADIUS);
-    this.haloContainer.add(this.halo.mesh);
+    this.halo = null;
+    this.enableHalo();
+
+    // Setup stars
+    this.starsContainer = new Group();
+    this.scene.add(this.starsContainer);
+    this.stars = null;
+    this.enableStars();
+
+    // Setup the globe
     this.shadowPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(.7 * GLOBE_RADIUS, .3 * -GLOBE_RADIUS, GLOBE_RADIUS));
     this.highlightPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(1.5 * -GLOBE_RADIUS, 1.5 * -GLOBE_RADIUS, 0));
     this.frontPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(0, 0, GLOBE_RADIUS));
@@ -90,15 +100,19 @@ export default class Renderer {
     });
     this.container.add(this.globe.mesh);
 
-    this.starsContainer = new Group();
-    this.scene.add(this.starsContainer);
-    this.stars = new Stars(GLOBE_RADIUS);
-    this.starsContainer.add(this.stars.mesh);
-
+    // Setup the world map
     this.worldMap = null;
-    new TextureLoader().load("/static/map.png", texture => {
-      this.worldMap = new WorldMap(GLOBE_RADIUS, texture);
-      this.container.add(this.worldMap.mesh);
+    const textureLoaded = new Promise(resolve => {
+      new TextureLoader().load("/static/map.png", texture => {
+        this.worldMap = new WorldMap({
+          radius: GLOBE_RADIUS,
+          texture,
+          rows: 200,
+          size: 0.095
+        });
+        this.container.add(this.worldMap.mesh);
+        resolve();
+      });
     });
 
     // TODO: Temporary
@@ -125,17 +139,52 @@ export default class Renderer {
       this.scene.add(light);
     }
 
-    // Setup input controller
+    // Setup input controller (done when first mounted)
     this.inputController = null;
 
     // Always let the update loop access 'this'
     this.update = this.update.bind(this);
 
     // Timers / debouncers
-    this.sizeDebouncer = null;
+    this.resizeDebouncer = null;
 
     // Debugging
-    this.debugUI = debug ? new DebugUI({renderer: this}) : null;
+    this.debugUI = null;
+    textureLoaded.then(() => {
+      this.debugUI = debug ? new DebugUI({renderer: this}) : null;
+    });
+  }
+
+  enableStars(animate = true) {
+    if (this.stars === null) {
+      this.stars = new Stars(GLOBE_RADIUS);
+      this.starsContainer.add(this.stars.mesh);
+    }
+
+    this.stars.animate = animate;
+  }
+
+  disableStars() {
+    if (this.stars !== null) {
+      this.starsContainer.remove(this.stars.mesh);
+      this.stars = null;
+    }
+  }
+
+  enableHalo(animate = true) {
+    if (this.halo === null) {
+      this.halo = new Halo(GLOBE_RADIUS);
+      this.haloContainer.add(this.halo.mesh);
+    }
+
+    this.halo.animate = animate;
+  }
+
+  disableHalo() {
+    if (this.halo !== null) {
+      this.haloContainer.remove(this.halo.mesh);
+      this.halo = null;
+    }
   }
 
   mount(element) {
@@ -149,7 +198,7 @@ export default class Renderer {
       element,
       object: this.container,
       objectContainer: this.parentContainer,
-      stars: this.stars
+      renderer: this
     });
 
     window.addEventListener("resize", () => this.updateSize());
@@ -161,9 +210,9 @@ export default class Renderer {
 
   updateSize(immediate = false) {
     // Clear any existing debouncing
-    if (this.sizeDebouncer != null) {
-      clearTimeout(this.sizeDebouncer);
-      this.sizeDebouncer = null;
+    if (this.resizeDebouncer != null) {
+      clearTimeout(this.resizeDebouncer);
+      this.resizeDebouncer = null;
     }
 
     const trigger = () => {
@@ -211,9 +260,9 @@ export default class Renderer {
     if (immediate) {
       trigger();
     } else {
-      this.sizeDebouncer = setTimeout(() => {
+      this.resizeDebouncer = setTimeout(() => {
         trigger();
-        this.sizeDebouncer = null;
+        this.resizeDebouncer = null;
       }, SIZE_UPDATE_DEBOUNCE_DELAY);
     }
   }

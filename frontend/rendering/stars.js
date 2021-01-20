@@ -10,7 +10,7 @@ import STARS_FRAGMENT_SHADER from "./shaders/stars.frag";
 export default class Stars {
   constructor(radius) {
     this.elapsedTime = 0;
-    this.animate = true;
+    this.animate = false;
     this.uniforms = {
       noiseSeed: {
         type: "f",
@@ -40,11 +40,6 @@ export default class Stars {
       blending: 2,
       transparent: true
     });
-
-    // Declare shader constants
-    this.material.defines = {
-      ANIMATE_HALO: this.animateHalo
-    };
 
     this.geometry = new PlaneGeometry(radius, radius);
     this.mesh = new Mesh(this.geometry, this.material);
