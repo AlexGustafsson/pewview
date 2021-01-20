@@ -7,6 +7,8 @@ import {
 
 import {getImageData, coordinatesToEuler, radiansToDegrees} from "./utils"
 
+const CIRCLE_DETAIL = 5;
+
 export default class WorldMap {
   constructor({radius, texture, rows, size}) {
     this.radius = radius;
@@ -35,7 +37,7 @@ export default class WorldMap {
       }
     }
 
-    const geometry = new CircleBufferGeometry(size, 5);
+    const geometry = new CircleBufferGeometry(size, CIRCLE_DETAIL);
     const material = new MeshStandardMaterial({
       color: 0x3a4494,
       metalness: 0,

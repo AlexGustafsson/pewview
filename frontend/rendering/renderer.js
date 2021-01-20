@@ -26,6 +26,7 @@ import Stars from "./stars"
 const SIZE_UPDATE_DEBOUNCE_DELAY = 200;
 
 const GLOBE_RADIUS = 25;
+const WORLD_MAP_OFFSET = 0;
 const START_ROTATION = new Euler(.3, 4.6, .05)
 
 export default class Renderer {
@@ -50,9 +51,12 @@ export default class Renderer {
     this.camera.position.set(0, 0, 220);
     this.scene.add(this.camera);
     this.renderer = new WebGLRenderer({
-      powerPreference: "high-performance",
+      // powerPreference: "high-performance",
+      powerPreference: "low-power",
       alpha: false,
-      preserveDrawingBuffer: false
+      preserveDrawingBuffer: false,
+      precision: "highp",
+      antialias: true
     });
     this.renderer.setPixelRatio(window.devicePixelRatio || 1);
     this.renderer.setClearColor(this.theme.colors.background, 1);
@@ -105,7 +109,7 @@ export default class Renderer {
     const textureLoaded = new Promise(resolve => {
       new TextureLoader().load("/static/map.png", texture => {
         this.worldMap = new WorldMap({
-          radius: GLOBE_RADIUS,
+          radius: GLOBE_RADIUS + WORLD_MAP_OFFSET,
           texture,
           rows: 200,
           size: 0.095
