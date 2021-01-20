@@ -30,26 +30,61 @@ export default class Globe {
     });
 
     // Hook up the globe's shaders
-    this.uniforms = [];
+    this.uniforms = {
+      shadowDist: {
+        type: "f",
+        value: shadowDist
+      },
+      highlightDist: {
+        type: "f",
+        value: highlightDist
+      },
+      shadowPoint: {
+        type: "v3",
+        value: (new Vector3()).copy(shadowPoint)
+      },
+      highlightPoint: {
+        type: "v3",
+        value: (new Vector3()).copy(highlightPoint)
+      },
+      frontPoint: {
+        type: "v3",
+        value: (new Vector3()).copy(frontPoint)
+      },
+      highlightColor: {
+        type: "c",
+        value: new Color(highlightColor)
+      },
+      frontHighlightColor: {
+        type: "c",
+        value: new Color(frontHighlightColor)
+      }
+    }
     this.material.onBeforeCompile = (shader, _renderer) => {
-      shader.uniforms.shadowDist = {value: shadowDist}
-      shader.uniforms.highlightDist = {value: highlightDist}
-      shader.uniforms.shadowPoint = {value: (new Vector3).copy(shadowPoint)}
-      shader.uniforms.highlightPoint = {value: (new Vector3).copy(highlightPoint)}
-      shader.uniforms.frontPoint = {value: (new Vector3).copy(frontPoint)}
-      shader.uniforms.highlightColor = {value: new Color(highlightColor)}
-      shader.uniforms.frontHighlightColor = {value: new Color(frontHighlightColor)}
-      shader.fragmentShader = GLOBE_FRAGMENT_SHADER,
-      shader.vertexShader = GLOBE_VERTEX_SHADER,
-      this.uniforms.push(shader.uniforms);
+      this.uniforms = {...shader.uniforms, ...this.uniforms};
+      shader.uniforms = this.uniforms;
+      shader.fragmentShader = GLOBE_FRAGMENT_SHADER;
+      shader.vertexShader = GLOBE_VERTEX_SHADER;
     };
 
     // Declare shader constants
     this.material.defines = {
-      USE_HIGHLIGHT: 1,
-      USE_HIGHLIGHT_ALT: 1,
-      USE_FRONT_HIGHLIGHT: 1,
-      DITHERING: 1
+      USE_HIGHLIGHT: true,
+      USE_HIGHLIGHT_ALT: true,
+      USE_FRONT_HIGHLIGHT: true,
+      DITHERING: true,
+      FLAT_SHADED: false,
+      USE_SHEEN: false,
+      TRANSPARENCY: false,
+      REFLECTIVITY: false,
+      USE_TANGENT: false,
+      PHYSICAL: false,
+    	REFLECTIVITY: false,
+    	CLEARCOAT: false,
+    	TRANSPARENCY: false,
+      USE_MAP: false,
+      IS_FILL: false,
+      USE_INSTANCING: false,
     };
 
     // Create the geometry
@@ -61,27 +96,22 @@ export default class Globe {
   }
 
   setShadowPoint(value) {
-    for (const uniform of this.uniforms)
-      uniform.shadowPoint.value.copy(value);
+    this.uniforms.shadowPoint.value.copy(value);
   }
 
   setHighlightPoint(value) {
-    for (const uniform of this.uniforms)
-      uniform.highlightPoint.value.copy(value);
+    this.uniforms.highlightPoint.value.copy(value);
   }
 
   setFrontPoint(value) {
-    for (const uniform of this.uniforms)
-      uniform.frontPoint.value.copy(value);
+    this.uniforms.frontPoint.value.copy(value);
   }
 
   setShadowDist(value) {
-    for (const uniform of this.uniforms)
-      uniform.shadowDist.value = value;
+    this.uniforms.shadowDist.value = value;
   }
 
   setHighlightDist(value) {
-    for (const uniform of this.uniforms)
-      uniform.highlightDist.value = value;
+    this.uniforms.highlightDist.value = value;
   }
 }
