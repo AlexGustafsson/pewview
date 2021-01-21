@@ -2,7 +2,7 @@ import {
   Vector2,
   Vector3,
   Matrix4,
-} from "../include/three"
+} from "three"
 import {messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME} from "./globals"
 import {IS_MOBILE} from "./utils"
 

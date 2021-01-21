@@ -5,7 +5,7 @@ import {
   Mesh,
   CubicBezierCurve3,
   TubeBufferGeometry,
-} from "../include/three"
+} from "three"
 import {coordinatesToEuler, radiansToDegrees, degreesToRadians} from "./utils"
 
 // in controller as well, in open-pr as well

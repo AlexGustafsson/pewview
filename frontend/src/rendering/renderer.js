@@ -10,7 +10,7 @@ import {
   Vector3,
   Euler,
   TextureLoader
-} from "../include/three"
+} from "three"
 import Theme from "./theme"
 import Globe from "./globe"
 import DebugUI from "./debug-ui"
@@ -20,6 +20,7 @@ import Controller from "./controller"
 import Halo from "./halo"
 import WorldMap from "./world-map"
 import Stars from "./stars"
+import WORLD_MAP from "../../static/map.png"
 
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
@@ -107,7 +108,7 @@ export default class Renderer {
     // Setup the world map
     this.worldMap = null;
     const textureLoaded = new Promise(resolve => {
-      new TextureLoader().load("/static/map.png", texture => {
+      new TextureLoader().load(WORLD_MAP, texture => {
         this.worldMap = new WorldMap({
           radius: GLOBE_RADIUS + WORLD_MAP_OFFSET,
           texture,

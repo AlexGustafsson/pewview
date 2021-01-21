@@ -5,7 +5,7 @@ import {
   MeshStandardMaterial,
   Mesh,
   Color
-} from "../include/three"
+} from "three"
 
 import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag";
 import GLOBE_VERTEX_SHADER from "./shaders/globe.vert";

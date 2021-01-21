@@ -1,4 +1,4 @@
-import {GUI} from "../include/dat.gui"
+import {GUI} from "dat.gui"
 import WorldMap from "./world-map"
 
 // The number of seconds to wait before updating debounced values

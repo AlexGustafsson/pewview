@@ -46,15 +46,6 @@ dev: frontend
 generate-traffic:
 	nflow-generator -t 127.0.0.1 -p 2056
 
-# Watch the frontend for changes and automatically rebuild it
-watch-frontend:
-	while true; do \
-	$(MAKE) frontend; \
-	which inotifywait && inotifywait -qre close_write ./frontend; \
-	which fswatch && fswatch -1 ./frontend; \
-	sleep 1; \
-	done
-
 # Format Go code
 format: $(source) Makefile
 	gofmt -l -s -w .
@@ -71,19 +62,13 @@ build/pewview: $(source) Makefile
 	go build $(BUILD_FLAGS) -o $@ cmd/pewview/pewview.go
 
 # Build the frontend
-frontend: ./frontend/index.html ./frontend/index.css ./build/frontend/index.min.js
-	rm -rf ./build/frontend/static &> /dev/null || true
-	cp -r ./frontend/static ./build/frontend
-	cp ./frontend/index.html ./build/frontend/
-	cp ./frontend/index.css ./build/frontend/
+frontend: $(wildcard ./frontend/static/*)
+	mkdir -p build/frontend
+	cd frontend && npm run build
+	cp frontend/dist/* build/frontend
 
 ./build/frontend.zip: frontend
 	zip ./build/frontend.zip -r ./build/frontend
-
-./build/frontend/index.min.js: $(wildcard ./frontend/*.js) $(wildcard ./frontend/rendering/*.js) $(wildcard ./frontend/include/*.js) $(wildcard ./frontend/rendering/shaders/*)
-	mkdir -p ./build/frontend
-	# Build minified distribution with no debugging
-	npx esbuild ./frontend/main.js --bundle --loader:.vert=text --loader:.frag=text --outfile=./build/frontend/index.min.js --external:fs --external:path --minify --sourcemap --target=$(BROWSERLIST) --define:process.env.NODE_ENV=\"production\"
 
 # Build for Linux
 linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz

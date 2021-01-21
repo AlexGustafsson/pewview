@@ -19,7 +19,7 @@ import {
   Object3D,
   CircleBufferGeometry,
   InstancedMesh,
-} from "../include/three"
+} from "three"
 import Tooltip from "./tooltip"
 import Globe from "./globe"
 import Controller from "./controller"

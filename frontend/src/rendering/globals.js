@@ -1,6 +1,6 @@
 import {
   Euler
-} from "../include/three"
+} from "three"
 
 import EventEmitter from "../event-emitter"
 

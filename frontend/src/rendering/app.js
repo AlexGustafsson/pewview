@@ -1,4 +1,4 @@
-import {TextureLoader} from "../include/three"
+import {TextureLoader} from "three"
 import WebGLController from "./web-gl-controller"
 import {bl} from "./globals"
 

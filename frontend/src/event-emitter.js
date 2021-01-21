@@ -18,19 +18,19 @@ export default class EventEmitter {
     }
   }
 
-  emit(event, ...arguments) {
+  emit(event, ...parameters) {
     if (this.events[event]) {
       const listeners = this.events[event].slice();
 
       for (let i = 0; i < listeners.length; i++)
-        listeners[i].apply(this, arguments);
+        listeners[i].apply(this, parameters);
     }
   }
 
   once(event, listener) {
     this.on(event, function g () {
       this.removeListener(event, g);
-      listener.apply(this, arguments);
+      listener.apply(this, parameters);
     });
   }
 }

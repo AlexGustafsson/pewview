@@ -3,7 +3,7 @@ import {
   CircleBufferGeometry,
   MeshStandardMaterial,
   InstancedMesh
-} from "../include/three"
+} from "three"
 
 import {getImageData, coordinatesToEuler, radiansToDegrees} from "./utils"
 

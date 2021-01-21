@@ -11,7 +11,7 @@ import {
   Float32BufferAttribute,
   PointsMaterial,
   Points,
-} from "../include/three"
+} from "three"
 import {bl} from "./globals"
 
 const wl = new Vector3();

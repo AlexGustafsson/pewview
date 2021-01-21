@@ -3,7 +3,7 @@ import {
   PlaneGeometry,
   ShaderMaterial,
   Vector2
-} from "../include/three"
+} from "three"
 
 import STARS_FRAGMENT_SHADER from "./shaders/stars.frag";
 

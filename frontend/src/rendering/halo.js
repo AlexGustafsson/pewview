@@ -4,7 +4,7 @@ import {
   ShaderMaterial,
   Color,
   Vector3
-} from "../include/three"
+} from "three"
 
 import HALO_FRAGMENT_SHADER from "./shaders/halo.frag";
 import HALO_VERTEX_SHADER from "./shaders/halo.vert";

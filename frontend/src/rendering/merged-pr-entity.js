@@ -7,7 +7,7 @@ import {
   CubicBezierCurve3,
   TubeBufferGeometry,
   RingBufferGeometry
-} from "../include/three"
+} from "three"
 import {bl} from "./globals"
 
 const Ml = Math.PI / 180; //rad2deg
