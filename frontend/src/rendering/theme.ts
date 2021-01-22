@@ -1,4 +1,17 @@
+type ThemeColors = {
+  background: number,
+  globe: {
+    frontHighlight: number,
+    water: number,
+    landFront: number,
+    landBack: number,
+    highlight: number
+  }
+};
+
 export default class Theme {
+  colors: ThemeColors;
+
   constructor() {
     this.colors = {
       background: 0x040d21,
