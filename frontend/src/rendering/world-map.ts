@@ -5,12 +5,29 @@ import {
   InstancedMesh
 } from "three"
 
+import type {
+  Texture
+} from "three"
+
 import {getImageData, coordinatesToEuler, radiansToDegrees} from "./utils"
 
 const CIRCLE_DETAIL = 5;
 
+type WorldMapOptions = {
+  radius: number,
+  texture: Texture,
+  rows: number,
+  size: number
+};
+
 export default class WorldMap {
-  constructor({radius, texture, rows, size}) {
+  radius: number;
+  texture: Texture;
+  rows: number;
+  size: number;
+  mesh: InstancedMesh;
+
+  constructor({radius, texture, rows, size}: WorldMapOptions) {
     this.radius = radius;
     this.texture = texture;
     this.rows = rows;
@@ -58,10 +75,10 @@ export default class WorldMap {
     this.mesh.renderOrder = 3;
   }
 
-  coordinateIsVisible(latitude, longitude, image) {
+  coordinateIsVisible(latitude: number, longitude: number, image: ImageData) {
     // Calculate the pixel coordinates of the geographical coordinate
-    const x = parseInt((latitude + 180) / 360 * image.width + .5);
-    const y = image.height - parseInt((longitude + 90) / 180 * image.height - .5);
+    const x = Math.floor((latitude + 180) / 360 * image.width + .5);
+    const y = image.height - Math.floor((longitude + 90) / 180 * image.height - .5);
     // Index in the image data (4 values per pixel)
     const index = Math.floor(image.width * 4 * (y - 1) + 4 * x) + 3;
     return image.data[index] > 90

@@ -10,6 +10,8 @@ import type {
   DirectionalLight
 } from "three"
 
+import type WorldMap from "./world-map"
+
 type RendererOptions = {
   theme?: any,
   debug?: boolean
@@ -51,7 +53,7 @@ export default class Renderer {
   globe: any;
 
   // Setup the world map
-  worldMap: HTMLImageElement | null;
+  worldMap: WorldMap | null;
 
   lights: {[name in string]: AmbientLight | SpotLight | DirectionalLight};
 
@@ -72,7 +74,7 @@ export default class Renderer {
 
   mount(element: HTMLElement): void;
 
-  updateSize(immediate: boolean): void;
+  updateSize(immediate?: boolean): void;
 
   start(): void;
 

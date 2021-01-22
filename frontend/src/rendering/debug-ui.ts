@@ -1,14 +1,45 @@
 import {GUI} from "dat.gui"
 import WorldMap from "./world-map"
 
+import type Renderer from "./renderer"
+
 // The number of seconds to wait before updating debounced values
 // such as the FPS
 const UPDATE_DEBOUNCE = 0.2;
 
+type DatGUIOptions = {
+  rendering: {
+    fps: number,
+    drawTime: number,
+    animateHalo: boolean,
+    animateStars: boolean,
+    enableHalo: boolean,
+    enableStars: boolean,
+    toggle: () => void
+  },
+  worldMap: {
+    rows: number,
+    size: number
+  },
+  lights: {
+    light0: boolean,
+    light1: boolean,
+    light2: boolean,
+    light4: boolean
+  }
+};
+
+type DebugUIOptions = {
+  renderer: Renderer
+};
+
 export default class DebugUI {
-  constructor({
-    renderer
-  }) {
+  gui: GUI;
+  renderer: Renderer;
+  elapsedTime: number;
+  options: DatGUIOptions;
+
+  constructor({renderer}: DebugUIOptions) {
     this.gui = new GUI();
     this.renderer = renderer;
 
@@ -30,8 +61,8 @@ export default class DebugUI {
         }
       },
       worldMap: {
-        rows: renderer.worldMap.rows,
-        size: renderer.worldMap.size,
+        rows: renderer.worldMap?.rows || 0,
+        size: renderer.worldMap?.size || 0,
       },
       lights: {
         light0: renderer.lights.light0.visible,
@@ -71,26 +102,28 @@ export default class DebugUI {
     lightsFolder.open();
   }
 
-  debouncedUpdate(deltaTime, _elapsedTime) {
+  debouncedUpdate(deltaTime: number, _elapsedTime: number) {
     this.options.rendering.fps = this.renderer.fps;
     this.options.rendering.drawTime = deltaTime;
 
-    const worldMapRowsChanged = this.options.worldMap.rows !== this.renderer.worldMap.rows;
-    const worldMapSizeChanged = this.options.worldMap.size !== this.renderer.worldMap.size
-    const worldMapChanged = worldMapRowsChanged || worldMapSizeChanged;
-    if (worldMapChanged) {
-      this.renderer.container.remove(this.renderer.worldMap.mesh);
-      this.renderer.worldMap = new WorldMap({
-        radius: this.renderer.worldMap.radius,
-        texture: this.renderer.worldMap.texture,
-        rows: this.options.worldMap.rows,
-        size: this.options.worldMap.size
-      });
-      this.renderer.container.add(this.renderer.worldMap.mesh);
+    if (this.renderer.worldMap !== null) {
+      const worldMapRowsChanged = this.options.worldMap.rows !== this.renderer.worldMap.rows;
+      const worldMapSizeChanged = this.options.worldMap.size !== this.renderer.worldMap.size
+      const worldMapChanged = worldMapRowsChanged || worldMapSizeChanged;
+      if (worldMapChanged) {
+        this.renderer.container.remove(this.renderer.worldMap.mesh);
+        this.renderer.worldMap = new WorldMap({
+          radius: this.renderer.worldMap.radius,
+          texture: this.renderer.worldMap.texture,
+          rows: this.options.worldMap.rows,
+          size: this.options.worldMap.size
+        });
+        this.renderer.container.add(this.renderer.worldMap.mesh);
+      }
     }
   }
 
-  update(deltaTime) {
+  update(deltaTime: number) {
     this.elapsedTime += deltaTime;
     if (this.elapsedTime >= UPDATE_DEBOUNCE) {
       this.debouncedUpdate(deltaTime, this.elapsedTime);
