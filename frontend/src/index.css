@@ -19,4 +19,17 @@ html, body {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
+  transition: 0.5s opacity;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#loading-overlay > h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 72px;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, “Roboto”, “Droid Sans”, “Helvetica Neue”, Helvetica, Arial, sans-serif;
 }

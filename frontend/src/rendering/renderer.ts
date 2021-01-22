@@ -21,6 +21,7 @@ import Halo from "./halo"
 import WorldMap from "./world-map"
 import Stars from "./stars"
 import WORLD_MAP from "../../static/map.png"
+import EventEmitter from "../event-emitter"
 
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
@@ -35,7 +36,7 @@ type RendererOptions = {
   debug?: boolean
 };
 
-export default class Renderer {
+export default class Renderer extends EventEmitter {
   element: HTMLElement | null;
   theme: Theme;
   isRunning: boolean;
@@ -72,6 +73,7 @@ export default class Renderer {
     theme = new Theme(),
     debug = false,
   }: RendererOptions = {}) {
+    super();
     this.element = null;
 
     // Style
@@ -151,6 +153,7 @@ export default class Renderer {
         });
         this.container.add(this.worldMap.mesh);
         resolve();
+        this.emit("load");
       });
     });
 

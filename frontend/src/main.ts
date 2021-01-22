@@ -32,14 +32,24 @@ async function main() {
   const renderer = new Renderer({
     debug: true,
   });
+  const rendererLoaded = new Promise<void>(resolve => {
+    renderer.once("load", () => {
+      resolve();
+    });
+  });
   renderer.mount(container);
-  renderer.start();
+  // Render one frame to kick start all processes
+  renderer.update();
   console.log(`Renderer created and mounted in ${performance.now() - beforeRender}ms`);
 
+  // Wait for the renderer to be completely loaded
+  await rendererLoaded;
   console.log(`Application is now up and running after ${performance.now() - beforeLoad}ms`);
+  // Start the renderer
+  renderer.start();
   const loadingOverlay = document.getElementById("loading-overlay");
   if (loadingOverlay !== null)
-    loadingOverlay.style.display = "none";
+    loadingOverlay.style.opacity = "0";
 }
 
 main();
