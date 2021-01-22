@@ -9,8 +9,27 @@ import {
 import HALO_FRAGMENT_SHADER from "./shaders/halo.frag";
 import HALO_VERTEX_SHADER from "./shaders/halo.vert";
 
+type Uniform = {
+  type: string,
+  value: number | Vector3 | Color
+};
+
 export default class Halo {
-  constructor(radius) {
+  elapsedTime: number;
+  animate: boolean;
+  uniforms: {
+    c: Uniform,
+    p: Uniform,
+    noiseSeed: Uniform,
+    noiseScale: Uniform,
+    noiseIntensity: Uniform,
+    glowColor: Uniform,
+    viewVector: Uniform
+  }
+  material: ShaderMaterial;
+  mesh: Mesh;
+
+  constructor(radius: number) {
     this.elapsedTime = 0;
     this.animate = false;
     this.uniforms = {
@@ -59,7 +78,7 @@ export default class Halo {
     this.mesh.renderOrder = 3;
   }
 
-  update(deltaTime) {
+  update(deltaTime: number) {
     if (this.animate) {
       this.elapsedTime = (this.elapsedTime + deltaTime) % 1e3;
       this.uniforms.noiseSeed.value = this.elapsedTime / 2;
