@@ -23,11 +23,6 @@ type GlobeOptions = {
   frontPoint: Vector3
 };
 
-type Uniform<T> = {
-  type: string,
-  value: T
-};
-
 export default class Globe {
   material: MeshStandardMaterial;
   uniforms: {

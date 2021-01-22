@@ -8,19 +8,7 @@ import {
 } from "three"
 import {coordinatesToEuler, radiansToDegrees, degreesToRadians} from "./utils"
 
-// in controller as well, in open-pr as well
-function Nl(t, e, n) {
-  return Math.max(e, Math.min(t, n))
-}
-
-function Pl(t, e) {
-    for (let n = t.children.length - 1; n >= 0; n--) {
-        const i = t.children[n];
-        Pl(i, e), "function" == typeof e && e(i)
-    }
-}
-
-function Cl(t, e, n, i) {
+function Cl(t: number, e: number, n: number, i: number): number[] {
     t = radiansToDegrees(t);
     e = radiansToDegrees(e);
     n = radiansToDegrees(n);
@@ -33,10 +21,10 @@ function Cl(t, e, n, i) {
 }
 
 // Same as open-pr
-function Dl(t, e, n, i, r) {
-    return function(t, e, n) {
-        return (n - e) * t + e
-    }(function(t, e, n) {
+function Dl(t: number, e: number, n: number, i: number, r: number) {
+    return function(t: number, e: number, n: number) {
+        return (n - e) * t + e;
+    }(function(t: number, e: number, n: number) {
         return (t - e) / (n - e) || 0
     }(t, e, n), i, r)
 }
@@ -49,13 +37,43 @@ const DATA_INCREMENT_SPEED = 1.5;
 const PAUSE_LENGTH_FACTOR = 2;
 const MIN_PAUSE = 3e3;
 
+type ArchOptions = {
+  source: {
+    latitude: number,
+    longitude: number
+  },
+  destination: {
+    latitude: number,
+    longitude: number
+  },
+  globeRadius: number,
+  colors: {
+    normal: number,
+    highlighted: number
+  }
+}
+
 export default class Arch {
+  highlighted: boolean;
+  mesh: Group;
+  colors: {
+    normal: number,
+    highlighted: number
+  };
+  materials: {
+    normal: MeshBasicMaterial,
+    highlighted: MeshBasicMaterial,
+    hidden: MeshBasicMaterial
+  };
+  visibleTubeMesh: Mesh;
+  hitboxTubeMesh: Mesh;
+
   constructor({
     source, //latitude, longitude
     destination,
     globeRadius,
     colors
-  }) {
+  }: ArchOptions) {
     this.highlighted = false;
 
     this.mesh = new Group();
@@ -137,19 +155,19 @@ export default class Arch {
     if (this.highlighted)
       return;
 
-    this.highlight = true;
-    this.visibleTube.material = this.materials.highlight;
+    this.highlighted = true;
+    this.visibleTubeMesh.material = this.materials.highlighted;
   }
 
   clearHighlight() {
     if (!this.highlighted)
       return;
 
-    this.highlight = false;
-    this.visibleTube.material = this.materials.normal;
+    this.highlighted = false;
+    this.visibleTubeMesh.material = this.materials.normal;
   }
 
-  update(step = 0.01) {
+  update(_deltaTime: number) {
 
   }
 }

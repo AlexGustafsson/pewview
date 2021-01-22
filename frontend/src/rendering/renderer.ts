@@ -30,11 +30,48 @@ const GLOBE_RADIUS = 25;
 const WORLD_MAP_OFFSET = 0;
 const START_ROTATION = new Euler(.3, 4.6, .05)
 
+type RendererOptions = {
+  theme?: Theme,
+  debug?: boolean
+};
+
 export default class Renderer {
+  element: HTMLElement | null;
+  theme: Theme;
+  isRunning: boolean;
+  hasLoaded: boolean;
+  clock: Clock;
+  fps: number;
+  scene: Scene;
+  camera: PerspectiveCamera;
+  renderer: WebGLRenderer;
+  parentContainer: Group;
+  container: Group;
+  haloContainer: Group;
+  halo: Halo | null;
+  starsContainer: Group;
+  stars: Stars | null;
+
+  shadowPoint: Vector3;
+  highlightPoint: Vector3;
+  frontPoint: Vector3;
+  globe: Globe;
+  worldMap: WorldMap | null;
+
+  ambientLights: {[key: string]: AmbientLight};
+  spotLights: {[key: string]: SpotLight};
+  directionalLights: {[key: string]: DirectionalLight};
+
+  inputController: Controller | null;
+
+  resizeDebouncer: ReturnType<typeof setInterval> | null;
+
+  debugUI: DebugUI | null;
+
   constructor({
     theme = new Theme(),
     debug = false,
-  } = {}) {
+  }: RendererOptions = {}) {
     this.element = null;
 
     // Style
@@ -91,23 +128,20 @@ export default class Renderer {
     this.globe = new Globe({
       radius: GLOBE_RADIUS,
       detail: 55,
-      renderer: this.renderer,
       shadowPoint: this.shadowPoint,
-      shadowDist: 1.5 * this.radius,
+      shadowDist: 1.5 * GLOBE_RADIUS,
       highlightPoint: this.highlightPoint,
       highlightColor: this.theme.colors.globe.highlight,
       highlightDist: 5,
       frontPoint: this.frontPoint,
       frontHighlightColor: this.theme.colors.globe.frontHighlight,
-      waterColor: this.theme.colors.globe.water,
-      landColorFront: this.theme.colors.globe.landFront,
-      landColorBack: this.theme.colors.globe.landBack
+      waterColor: this.theme.colors.globe.water
     });
     this.container.add(this.globe.mesh);
 
     // Setup the world map
     this.worldMap = null;
-    const textureLoaded = new Promise(resolve => {
+    const textureLoaded = new Promise<void>(resolve => {
       new TextureLoader().load(WORLD_MAP, texture => {
         this.worldMap = new WorldMap({
           radius: GLOBE_RADIUS + WORLD_MAP_OFFSET,
@@ -130,19 +164,30 @@ export default class Renderer {
     // this.container.add(arch.mesh)
 
     // Setup lights
-    this.lights = {
+    this.ambientLights = {
       light0: new AmbientLight(0xa9bfff, .8),
-      // The light blue atmospheric light
-      light1: new SpotLight(0x2188ff, 5, 120, .3, 0, 1.1),
+    };
+
+    this.directionalLights = {
       // Bottom light
       light2: new DirectionalLight(0xa9bfff, 3),
+    };
+
+    this.spotLights = {
+      // The light blue atmospheric light
+      light1: new SpotLight(0x2188ff, 5, 120, .3, 0, 1.1),
       // Highlight / focus light
       light4: new SpotLight(0xf46bbe, 5, 75, .5, 0, 1.25)
     };
-    for (const light of Object.values(this.lights)) {
+
+    for (const light of Object.values(this.directionalLights))
       light.target = this.parentContainer;
+
+    for (const light of Object.values(this.spotLights))
+      light.target = this.parentContainer;
+
+    for (const light of this.lights)
       this.scene.add(light);
-    }
 
     // Setup input controller (done when first mounted)
     this.inputController = null;
@@ -158,6 +203,14 @@ export default class Renderer {
     textureLoaded.then(() => {
       this.debugUI = debug ? new DebugUI({renderer: this}) : null;
     });
+  }
+
+  get lights() {
+    return [
+      ...Object.values(this.ambientLights),
+      ...Object.values(this.directionalLights),
+      ...Object.values(this.spotLights)
+    ];
   }
 
   enableStars(animate = true) {
@@ -192,7 +245,7 @@ export default class Renderer {
     }
   }
 
-  mount(element) {
+  mount(element: HTMLElement) {
     if (this.element)
       console.warn("The renderer was already mounted, this may cause undefined behaviour");
 
@@ -221,12 +274,15 @@ export default class Renderer {
     }
 
     const trigger = () => {
-      this.size = this.element.getBoundingClientRect();
-      this.camera.aspect = this.size.width / this.size.height;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.size.width, this.size.height);
+      if (this.element === null)
+        return;
 
-      const containerScale = 850 / this.size.height;
+      const size = this.element.getBoundingClientRect();
+      this.camera.aspect = size.width / size.height;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(size.width, size.height);
+
+      const containerScale = 850 / size.height;
       if (IS_MOBILE) {
         this.parentContainer.position.set(0, 0, 0);
       } else {
@@ -239,17 +295,17 @@ export default class Renderer {
       this.haloContainer.position.set(0, 0, -10);
       this.starsContainer.position.set(0, 0, -20);
 
-      this.lights.light1.position.set(this.parentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
-      this.lights.light1.distance = 120 * containerScale;
+      this.spotLights.light1.position.set(this.parentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
+      this.spotLights.light1.distance = 120 * containerScale;
 
-      this.lights.light2.position.set(this.parentContainer.position.x - 50, this.parentContainer.position.y + 30, 10).multiplyScalar(containerScale);
+      this.directionalLights.light2.position.set(this.parentContainer.position.x - 50, this.parentContainer.position.y + 30, 10).multiplyScalar(containerScale);
 
       // where's light3? previously light2
       // this.lights.light3.position.set(this.parentContainer.position.x - 25, 0, 100).multiplyScalar(containerScale)
       // this.light3.distance = 150 * containerScale
 
-      this.lights.light4.position.set(this.parentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
-      this.lights.light4.distance = 75 * containerScale;
+      this.spotLights.light4.position.set(this.parentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
+      this.spotLights.light4.distance = 75 * containerScale;
 
       const scaledRadius = GLOBE_RADIUS * containerScale;
       this.shadowPoint.copy(this.parentContainer.position).add(new Vector3(.7 * scaledRadius, .3 * -scaledRadius, scaledRadius));
@@ -298,7 +354,8 @@ export default class Renderer {
 
     this.renderer.render(this.scene, this.camera);
 
-    this.inputController.update(deltaTime);
+    if (this.inputController)
+      this.inputController.update(deltaTime);
     if (this.debugUI)
       this.debugUI.update(deltaTime);
     if (this.halo)

@@ -1,6 +1,12 @@
 import {GUI} from "dat.gui"
 import WorldMap from "./world-map"
 
+import type {
+  SpotLight,
+  AmbientLight,
+  DirectionalLight
+} from "three"
+
 import type Renderer from "./renderer"
 
 // The number of seconds to wait before updating debounced values
@@ -21,12 +27,7 @@ type DatGUIOptions = {
     rows: number,
     size: number
   },
-  lights: {
-    light0: boolean,
-    light1: boolean,
-    light2: boolean,
-    light4: boolean
-  }
+  lights: {[key: string]: boolean}
 };
 
 type DebugUIOptions = {
@@ -49,8 +50,8 @@ export default class DebugUI {
       rendering: {
         fps: 0,
         drawTime: 0,
-        animateHalo: renderer.halo && renderer.halo.animate,
-        animateStars: Boolean(renderer.stars && renderer.stars.animate),
+        animateHalo: renderer.halo !== null && renderer.halo.animate,
+        animateStars: renderer.stars !== null && renderer.stars.animate,
         enableHalo: renderer.halo !== null,
         enableStars: renderer.stars !== null,
         toggle() {
@@ -64,13 +65,11 @@ export default class DebugUI {
         rows: renderer.worldMap?.rows || 0,
         size: renderer.worldMap?.size || 0,
       },
-      lights: {
-        light0: renderer.lights.light0.visible,
-        light1: renderer.lights.light1.visible,
-        light2: renderer.lights.light2.visible,
-        light4: renderer.lights.light4.visible,
-      }
+      lights: {}
     };
+
+    for (const light of renderer.lights)
+      this.options.lights[Object.values(this.options.lights).length.toString()] = light.visible;
 
     const renderingFolder = this.gui.addFolder("Rendering");
 
@@ -95,10 +94,8 @@ export default class DebugUI {
     worldMapFolder.open();
 
     const lightsFolder = this.gui.addFolder("Lights");
-    lightsFolder.add(this.options.lights, "light0").name("Enable Light 0");
-    lightsFolder.add(this.options.lights, "light1").name("Enable Light 1");
-    lightsFolder.add(this.options.lights, "light2").name("Enable Light 2");
-    lightsFolder.add(this.options.lights, "light4").name("Enable Light 4");
+    for (const light of Object.keys(this.options.lights))
+      lightsFolder.add(this.options.lights, light).name(`Enable Light ${light}`);
     lightsFolder.open();
   }
 
@@ -157,8 +154,9 @@ export default class DebugUI {
 
     let lightsChanged = false;
     for (const [light, visible] of Object.entries(this.options.lights)) {
-      if (visible !== this.renderer.lights[light].visible) {
-        this.renderer.lights[light].visible = visible;
+      const lightIndex = Number.parseInt(light) as number;
+      if (visible !== (this.renderer.lights[lightIndex]).visible) {
+        this.renderer.lights[lightIndex].visible = visible;
         lightsChanged = true;
       }
     }

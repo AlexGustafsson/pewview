@@ -9,22 +9,17 @@ import {
 import HALO_FRAGMENT_SHADER from "./shaders/halo.frag";
 import HALO_VERTEX_SHADER from "./shaders/halo.vert";
 
-type Uniform = {
-  type: string,
-  value: number | Vector3 | Color
-};
-
 export default class Halo {
   elapsedTime: number;
   animate: boolean;
   uniforms: {
-    c: Uniform,
-    p: Uniform,
-    noiseSeed: Uniform,
-    noiseScale: Uniform,
-    noiseIntensity: Uniform,
-    glowColor: Uniform,
-    viewVector: Uniform
+    c: Uniform<number>,
+    p: Uniform<number>,
+    noiseSeed: Uniform<number>,
+    noiseScale: Uniform<number>,
+    noiseIntensity: Uniform<number>,
+    glowColor: Uniform<Color>,
+    viewVector: Uniform<Vector3>
   }
   material: ShaderMaterial;
   mesh: Mesh;

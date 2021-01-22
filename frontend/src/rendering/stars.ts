@@ -7,20 +7,15 @@ import {
 
 import STARS_FRAGMENT_SHADER from "./shaders/stars.frag";
 
-type Uniform = {
-  type: string,
-  value: number | Vector2
-};
-
 export default class Stars {
   elapsedTime: number;
   animate: boolean;
   uniforms: {
-    noiseSeed: Uniform,
-    noiseScale: Uniform,
-    noiseIntensity: Uniform,
-    resolution: Uniform,
-    offset: Uniform
+    noiseSeed: Uniform<number>,
+    noiseScale: Uniform<number>,
+    noiseIntensity: Uniform<number>,
+    resolution: Uniform<Vector2>,
+    offset: Uniform<Vector2>
   };
   material: ShaderMaterial;
   geometry: PlaneGeometry;

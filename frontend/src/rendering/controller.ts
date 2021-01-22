@@ -3,10 +3,18 @@ import {
   Vector3,
   Matrix4,
 } from "three"
+
+import type {
+  Group,
+  Object3D
+} from "three"
+
+import type Renderer from "./renderer"
+
 import {messageBus, START_ROTATION, EVENT_PAUSE, EVENT_RESUME} from "./globals"
 import {IS_MOBILE} from "./utils"
 
-function Al(t, e, n) {
+function Al(t: Object3D, e: number, n: Matrix4) {
   const i = n || new Matrix4();
   i.identity();
   i.makeRotationY(e);
@@ -16,7 +24,7 @@ function Al(t, e, n) {
 }
 
 // in renderer as well
-function Nl(t, e, n) {
+function Nl(t: number, e: number, n: number) {
   return Math.max(e, Math.min(t, n))
 }
 
@@ -25,13 +33,33 @@ const EASING = 0.12;
 const ROTATE_SPEED = IS_MOBILE ? 1.5 : 3;
 const AUTO_ROTATION_SPEED = 0.05;
 
+type ControllerOptions = {
+  element: HTMLElement,
+  object: Group,
+  objectContainer: Group,
+  renderer: Renderer
+}
+
 export default class Controller {
+  element: HTMLElement;
+  object: Group;
+  objectContainer: Group;
+  renderer: Renderer;
+  mouse: Vector2;
+  lastMouse: Vector2;
+  target: Vector3;
+  matrix: Matrix4;
+  velocity: Vector2;
+  dragging: boolean;
+  autoRotationSpeedScalar: number;
+  autoRotationSpeedScalarTarget: number;
+
   constructor({
     element,
     object,
     objectContainer,
     renderer,
-  }) {
+  }: ControllerOptions) {
     this.element = element;
     this.object = object;
     this.objectContainer = objectContainer;
@@ -60,13 +88,13 @@ export default class Controller {
     messageBus.on(EVENT_RESUME, this.handleResume)
   }
 
-  setMouse(event) {
+  setMouse(event: MouseEvent) {
     const {width, height} = this.element.getBoundingClientRect();
     this.mouse.x = event.clientX / width * 2 - 1;
     this.mouse.y = -event.clientY / height * 2 + 1;
   }
 
-  setDragging(isDragging) {
+  setDragging(isDragging: boolean) {
     this.dragging = isDragging;
     // if (this.options.setDraggingCallback)
     //   this.options.setDraggingCallback(isDragging);
@@ -80,40 +108,40 @@ export default class Controller {
     // Originally added listeners
   }
 
-  handleMouseDown(event) {
+  handleMouseDown(event: MouseEvent) {
     this.setMouse(event);
     this.setDragging(true);
   }
 
-  handleMouseMove(event) {
+  handleMouseMove(event: MouseEvent) {
     this.setMouse(event);
   }
 
-  handleMouseUp(event) {
+  handleMouseUp(event: MouseEvent) {
     this.setMouse(event);
     this.setDragging(false);
   }
 
-  handleMouseOut(_event) {
+  handleMouseOut(_event: MouseEvent) {
     this.setDragging(false)
   }
 
-  handleTouchStart(event) {
-    this.setMouse(event.changedTouches[0]);
+  handleTouchStart(event: TouchEvent) {
+    this.setMouse((event.changedTouches[0] as unknown) as MouseEvent);
     this.lastMouse.copy(this.mouse);
     this.setDragging(true);
   }
 
-  handleTouchMove(event) {
-    this.setMouse(event.changedTouches[0]);
+  handleTouchMove(event: TouchEvent) {
+    this.setMouse((event.changedTouches[0] as unknown) as MouseEvent);
   }
 
-  handleTouchEnd(event) {
-    this.setMouse(event.changedTouches[0]);
+  handleTouchEnd(event: TouchEvent) {
+    this.setMouse((event.changedTouches[0] as unknown) as MouseEvent);
     this.setDragging(false)
   }
 
-  update(deltaTime) {
+  update(deltaTime: number) {
     let velocityX = 0;
     let velocityY = 0;
 
