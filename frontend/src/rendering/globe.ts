@@ -10,7 +10,38 @@ import {
 import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag";
 import GLOBE_VERTEX_SHADER from "./shaders/globe.vert";
 
+type GlobeOptions = {
+  radius: number,
+  detail: number,
+  shadowPoint: Vector3,
+  highlightPoint: Vector3,
+  highlightColor: number,
+  frontHighlightColor: number,
+  waterColor: number,
+  shadowDist: number,
+  highlightDist: number,
+  frontPoint: Vector3
+};
+
+type Uniform<T> = {
+  type: string,
+  value: T
+};
+
 export default class Globe {
+  material: MeshStandardMaterial;
+  uniforms: {
+    shadowDist: Uniform<number>,
+    highlightDist: Uniform<number>,
+    shadowPoint: Uniform<Vector3>,
+    highlightPoint: Uniform<Vector3>,
+    frontPoint: Uniform<Vector3>,
+    highlightColor: Uniform<Color>,
+    frontHighlightColor: Uniform<Color>
+  };
+  mesh: Group;
+  meshFill: Mesh;
+
   constructor({
     radius,
     detail,
@@ -22,7 +53,7 @@ export default class Globe {
     shadowDist,
     highlightDist,
     frontPoint
-  }) {
+  }: GlobeOptions) {
     this.material = new MeshStandardMaterial({
       color: waterColor,
       metalness: 0,
@@ -79,9 +110,7 @@ export default class Globe {
       REFLECTIVITY: false,
       USE_TANGENT: false,
       PHYSICAL: false,
-    	REFLECTIVITY: false,
     	CLEARCOAT: false,
-    	TRANSPARENCY: false,
       USE_MAP: false,
       IS_FILL: false,
       USE_INSTANCING: false,
@@ -95,23 +124,23 @@ export default class Globe {
     this.mesh.add(this.meshFill);
   }
 
-  setShadowPoint(value) {
+  setShadowPoint(value: Vector3) {
     this.uniforms.shadowPoint.value.copy(value);
   }
 
-  setHighlightPoint(value) {
+  setHighlightPoint(value: Vector3) {
     this.uniforms.highlightPoint.value.copy(value);
   }
 
-  setFrontPoint(value) {
+  setFrontPoint(value: Vector3) {
     this.uniforms.frontPoint.value.copy(value);
   }
 
-  setShadowDist(value) {
+  setShadowDist(value: number) {
     this.uniforms.shadowDist.value = value;
   }
 
-  setHighlightDist(value) {
+  setHighlightDist(value: number) {
     this.uniforms.highlightDist.value = value;
   }
 }
