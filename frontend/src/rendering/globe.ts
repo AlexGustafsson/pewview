@@ -7,23 +7,30 @@ import {
   Color
 } from "three"
 
+import type Theme from "./theme"
+
 import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag";
 import GLOBE_VERTEX_SHADER from "./shaders/globe.vert";
 
 type GlobeOptions = {
   radius: number,
   detail: number,
-  shadowPoint: Vector3,
-  highlightPoint: Vector3,
-  highlightColor: number,
-  frontHighlightColor: number,
-  waterColor: number,
-  shadowDist: number,
-  highlightDist: number,
-  frontPoint: Vector3
+  theme: Theme,
+  origin: Vector3
 };
 
 export default class Globe {
+  private radius: number;
+  private origin: Vector3;
+
+  private shadowPoint: Vector3;
+  private shadowDist: number;
+
+  private highlightPoint: Vector3;
+  private highlightDist: number;
+
+  private frontPoint: Vector3;
+
   material: MeshStandardMaterial;
   uniforms: {
     shadowDist: Uniform<number>,
@@ -40,17 +47,20 @@ export default class Globe {
   constructor({
     radius,
     detail,
-    shadowPoint,
-    highlightPoint,
-    highlightColor,
-    frontHighlightColor,
-    waterColor,
-    shadowDist,
-    highlightDist,
-    frontPoint
+    theme,
+    origin
   }: GlobeOptions) {
+    this.radius = radius;
+    this.origin = origin;
+    this.highlightPoint = new Vector3();
+    this.highlightDist = 5;
+    this.frontPoint = new Vector3();
+    this.shadowPoint = new Vector3();
+    this.shadowDist = 1.5 * radius;
+    this.updateSize(radius, 1);
+
     this.material = new MeshStandardMaterial({
-      color: waterColor,
+      color: theme.colors.globe.water,
       metalness: 0,
       roughness: .9
     });
@@ -59,31 +69,31 @@ export default class Globe {
     this.uniforms = {
       shadowDist: {
         type: "f",
-        value: shadowDist
+        value: this.shadowDist
       },
       highlightDist: {
         type: "f",
-        value: highlightDist
+        value: this.highlightDist
       },
       shadowPoint: {
         type: "v3",
-        value: (new Vector3()).copy(shadowPoint)
+        value: this.shadowPoint
       },
       highlightPoint: {
         type: "v3",
-        value: (new Vector3()).copy(highlightPoint)
+        value: this.highlightPoint
       },
       frontPoint: {
         type: "v3",
-        value: (new Vector3()).copy(frontPoint)
+        value: this.frontPoint
       },
       highlightColor: {
         type: "c",
-        value: new Color(highlightColor)
+        value: new Color(theme.colors.globe.highlight)
       },
       frontHighlightColor: {
         type: "c",
-        value: new Color(frontHighlightColor)
+        value: new Color(theme.colors.globe.frontHighlight)
       }
     }
     this.material.onBeforeCompile = (shader, _renderer) => {
@@ -117,6 +127,16 @@ export default class Globe {
     this.meshFill = new Mesh(geometry, this.material);
     this.meshFill.renderOrder = 1;
     this.mesh.add(this.meshFill);
+  }
+
+  updateSize(radius: number, scale: number) {
+    this.radius = radius;
+    this.shadowPoint = this.origin.clone().add(new Vector3(.7 * this.radius, .3 * -this.radius, this.radius));
+    this.highlightPoint = this.origin.clone().add(new Vector3(1.5 * -this.radius, 1.5 * -this.radius, 0));
+    this.frontPoint = this.origin.clone().add(new Vector3(0, 0, this.radius));
+
+    this.shadowDist = 1.5 * this.radius;
+    this.highlightDist = 5 * scale;
   }
 
   setShadowPoint(value: Vector3) {

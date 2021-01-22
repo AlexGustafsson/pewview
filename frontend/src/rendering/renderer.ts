@@ -12,15 +12,15 @@ import {
   TextureLoader
 } from "three"
 import Theme from "./theme"
-import Globe from "./globe"
 import DebugUI from "./debug-ui"
 import Arch from "./arch"
 import {IS_MOBILE} from "./utils"
 import Controller from "./controller"
-import Halo from "./halo"
-import WorldMap from "./world-map"
 import Stars from "./stars"
+import Earth from "./earth"
+
 import WORLD_MAP from "../../static/map.png"
+
 import EventEmitter from "../event-emitter"
 
 // The number of milliseconds to wait before triggering a size update.
@@ -46,18 +46,12 @@ export default class Renderer extends EventEmitter {
   scene: Scene;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
-  parentContainer: Group;
-  container: Group;
-  haloContainer: Group;
-  halo: Halo | null;
-  starsContainer: Group;
+  orbitParentContainer: Group;
+  orbitContainer: Group;
+  staticContainer: Group;
   stars: Stars | null;
 
-  shadowPoint: Vector3;
-  highlightPoint: Vector3;
-  frontPoint: Vector3;
-  globe: Globe;
-  worldMap: WorldMap | null;
+  earth: Earth | null;
 
   ambientLights: {[key: string]: AmbientLight};
   spotLights: {[key: string]: SpotLight};
@@ -102,56 +96,32 @@ export default class Renderer extends EventEmitter {
     this.renderer.setClearColor(this.theme.colors.background, 1);
 
     // Scene
-    this.parentContainer = new Group();
-    this.scene.add(this.parentContainer);
-    this.container = new Group();
-    this.parentContainer.add(this.container);
+    this.orbitParentContainer = new Group();
+    this.orbitContainer = new Group();
+    this.orbitParentContainer.add(this.orbitContainer);
+    this.scene.add(this.orbitParentContainer);
+    this.staticContainer = new Group();
+    this.scene.add(this.staticContainer);
     const rotation = START_ROTATION;
     const offset = (new Date()).getTimezoneOffset();
     rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
-    this.parentContainer.rotation.copy(rotation);
-
-    // Setup the halo
-    this.haloContainer = new Group();
-    this.scene.add(this.haloContainer);
-    this.halo = null;
-    this.enableHalo();
+    this.orbitContainer.rotation.copy(rotation);
 
     // Setup stars
-    this.starsContainer = new Group();
-    this.scene.add(this.starsContainer);
     this.stars = null;
     this.enableStars();
 
-    // Setup the globe
-    this.shadowPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(.7 * GLOBE_RADIUS, .3 * -GLOBE_RADIUS, GLOBE_RADIUS));
-    this.highlightPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(1.5 * -GLOBE_RADIUS, 1.5 * -GLOBE_RADIUS, 0));
-    this.frontPoint = (new Vector3()).copy(this.parentContainer.position).add(new Vector3(0, 0, GLOBE_RADIUS));
-    this.globe = new Globe({
-      radius: GLOBE_RADIUS,
-      detail: 55,
-      shadowPoint: this.shadowPoint,
-      shadowDist: 1.5 * GLOBE_RADIUS,
-      highlightPoint: this.highlightPoint,
-      highlightColor: this.theme.colors.globe.highlight,
-      highlightDist: 5,
-      frontPoint: this.frontPoint,
-      frontHighlightColor: this.theme.colors.globe.frontHighlight,
-      waterColor: this.theme.colors.globe.water
-    });
-    this.container.add(this.globe.mesh);
-
     // Setup the world map
-    this.worldMap = null;
+    this.earth = null;
     const textureLoaded = new Promise<void>(resolve => {
       new TextureLoader().load(WORLD_MAP, texture => {
-        this.worldMap = new WorldMap({
-          radius: GLOBE_RADIUS + WORLD_MAP_OFFSET,
-          texture,
-          rows: 200,
-          size: 0.095
+        this.earth = new Earth({
+          radius: GLOBE_RADIUS,
+          worldMapTexture: texture,
+          origin: new Vector3(0, 0, 0),
+          theme: theme
         });
-        this.container.add(this.worldMap.mesh);
+        this.earth.mount(this.orbitContainer, this.staticContainer);
         resolve();
         this.emit("load");
       });
@@ -184,10 +154,10 @@ export default class Renderer extends EventEmitter {
     };
 
     for (const light of Object.values(this.directionalLights))
-      light.target = this.parentContainer;
+      light.target = this.orbitContainer;
 
     for (const light of Object.values(this.spotLights))
-      light.target = this.parentContainer;
+      light.target = this.orbitContainer;
 
     for (const light of this.lights)
       this.scene.add(light);
@@ -205,6 +175,7 @@ export default class Renderer extends EventEmitter {
     this.debugUI = null;
     textureLoaded.then(() => {
       this.debugUI = debug ? new DebugUI({renderer: this}) : null;
+      this.updateSize(true);
     });
   }
 
@@ -219,7 +190,8 @@ export default class Renderer extends EventEmitter {
   enableStars(animate = true) {
     if (this.stars === null) {
       this.stars = new Stars(GLOBE_RADIUS);
-      this.starsContainer.add(this.stars.mesh);
+      this.stars.mesh.position.set(0, 0, -20);
+      this.staticContainer.add(this.stars.mesh);
     }
 
     this.stars.animate = animate;
@@ -227,24 +199,8 @@ export default class Renderer extends EventEmitter {
 
   disableStars() {
     if (this.stars !== null) {
-      this.starsContainer.remove(this.stars.mesh);
+      this.staticContainer.remove(this.stars.mesh);
       this.stars = null;
-    }
-  }
-
-  enableHalo(animate = true) {
-    if (this.halo === null) {
-      this.halo = new Halo(GLOBE_RADIUS);
-      this.haloContainer.add(this.halo.mesh);
-    }
-
-    this.halo.animate = animate;
-  }
-
-  disableHalo() {
-    if (this.halo !== null) {
-      this.haloContainer.remove(this.halo.mesh);
-      this.halo = null;
     }
   }
 
@@ -257,8 +213,8 @@ export default class Renderer extends EventEmitter {
 
     this.inputController = new Controller({
       element,
-      object: this.container,
-      objectContainer: this.parentContainer,
+      object: this.orbitContainer,
+      objectContainer: this.orbitParentContainer,
       renderer: this
     });
 
@@ -286,39 +242,31 @@ export default class Renderer extends EventEmitter {
       this.renderer.setSize(size.width, size.height);
 
       const containerScale = 850 / size.height;
-      if (IS_MOBILE) {
-        this.parentContainer.position.set(0, 0, 0);
-      } else {
-        this.parentContainer.position.set(0, 0, 0);
-        this.parentContainer.scale.set(containerScale, containerScale, containerScale);
-        this.haloContainer.scale.set(containerScale, containerScale, containerScale);
-        this.starsContainer.scale.set(containerScale, containerScale, containerScale);
+      if (!IS_MOBILE) {
+        this.orbitParentContainer.scale.set(containerScale, containerScale, containerScale);
+        this.staticContainer.scale.set(containerScale, containerScale, containerScale);
       }
 
-      this.haloContainer.position.set(0, 0, -10);
-      this.starsContainer.position.set(0, 0, -20);
+      this.orbitParentContainer.position.set(0, 0, 0);
+      this.staticContainer.position.set(0, 0, 0);
 
-      this.spotLights.light1.position.set(this.parentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
+      this.spotLights.light1.position.set(this.orbitParentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
       this.spotLights.light1.distance = 120 * containerScale;
 
-      this.directionalLights.light2.position.set(this.parentContainer.position.x - 50, this.parentContainer.position.y + 30, 10).multiplyScalar(containerScale);
+      this.directionalLights.light2.position.set(this.orbitParentContainer.position.x - 50, this.orbitParentContainer.position.y + 30, 10).multiplyScalar(containerScale);
 
       // where's light3? previously light2
       // this.lights.light3.position.set(this.parentContainer.position.x - 25, 0, 100).multiplyScalar(containerScale)
       // this.light3.distance = 150 * containerScale
 
-      this.spotLights.light4.position.set(this.parentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
+      this.spotLights.light4.position.set(this.orbitParentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
       this.spotLights.light4.distance = 75 * containerScale;
 
       const scaledRadius = GLOBE_RADIUS * containerScale;
-      this.shadowPoint.copy(this.parentContainer.position).add(new Vector3(.7 * scaledRadius, .3 * -scaledRadius, scaledRadius));
-      this.globe.setShadowPoint(this.shadowPoint);
-      this.highlightPoint.copy(this.parentContainer.position).add(new Vector3(1.5 * -scaledRadius, 1.5 * -scaledRadius, 0));
-      this.globe.setHighlightPoint(this.highlightPoint);
-      this.frontPoint = (new Vector3).copy(this.parentContainer.position).add(new Vector3(0, 0, scaledRadius));
-      this.globe.setFrontPoint(this.frontPoint);
-      this.globe.setShadowDist(1.5 * scaledRadius);
-      this.globe.setHighlightDist(5 * containerScale);
+      if (this.earth) {
+        this.earth.radius = scaledRadius;
+        this.earth.scale = containerScale;
+      }
     };
 
     if (immediate) {
@@ -361,10 +309,10 @@ export default class Renderer extends EventEmitter {
       this.inputController.update(deltaTime);
     if (this.debugUI)
       this.debugUI.update(deltaTime);
-    if (this.halo)
-      this.halo.update(deltaTime);
     if (this.stars)
       this.stars.update(deltaTime);
+    if (this.earth)
+      this.earth.update(deltaTime);
 
     if (this.isRunning)
       requestAnimationFrame(this.update);

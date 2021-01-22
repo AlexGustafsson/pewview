@@ -83,4 +83,8 @@ export default class WorldMap {
     const index = Math.floor(image.width * 4 * (y - 1) + 4 * x) + 3;
     return image.data[index] > 90
   }
+
+  updateSize(radius: number) {
+    // todo
+  }
 }

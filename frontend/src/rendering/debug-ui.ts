@@ -17,16 +17,16 @@ type DatGUIOptions = {
   rendering: {
     fps: number,
     drawTime: number,
-    animateHalo: boolean,
+    // animateHalo: boolean,
     animateStars: boolean,
-    enableHalo: boolean,
+    // enableHalo: boolean,
     enableStars: boolean,
     toggle: () => void
   },
-  worldMap: {
-    rows: number,
-    size: number
-  },
+  // worldMap: {
+  //   rows: number,
+  //   size: number
+  // },
   lights: {[key: string]: boolean}
 };
 
@@ -50,9 +50,9 @@ export default class DebugUI {
       rendering: {
         fps: 0,
         drawTime: 0,
-        animateHalo: renderer.halo !== null && renderer.halo.animate,
+        // animateHalo: renderer.halo !== null && renderer.halo.animate,
         animateStars: renderer.stars !== null && renderer.stars.animate,
-        enableHalo: renderer.halo !== null,
+        // enableHalo: renderer.halo !== null,
         enableStars: renderer.stars !== null,
         toggle() {
           if (renderer.isRunning)
@@ -61,10 +61,10 @@ export default class DebugUI {
             renderer.start();
         }
       },
-      worldMap: {
-        rows: renderer.worldMap?.rows || 0,
-        size: renderer.worldMap?.size || 0,
-      },
+      // worldMap: {
+      //   rows: renderer.worldMap?.rows || 0,
+      //   size: renderer.worldMap?.size || 0,
+      // },
       lights: {}
     };
 
@@ -79,19 +79,19 @@ export default class DebugUI {
     const drawTime = renderingFolder.add(this.options.rendering, "drawTime").step(0.001).name("Draw Time").listen();
     drawTime.domElement.style.pointerEvents = "none";
 
-    renderingFolder.add(this.options.rendering, "animateHalo").name("Animate Halo");
+    // renderingFolder.add(this.options.rendering, "animateHalo").name("Animate Halo");
     renderingFolder.add(this.options.rendering, "animateStars").name("Animate Stars");
-    renderingFolder.add(this.options.rendering, "enableHalo").name("Enable Halo");
+    // renderingFolder.add(this.options.rendering, "enableHalo").name("Enable Halo");
     renderingFolder.add(this.options.rendering, "enableStars").name("Enable Stars");
 
     renderingFolder.add(this.options.rendering, "toggle").name("Toggle Rendering");
 
     renderingFolder.open();
 
-    const worldMapFolder = this.gui.addFolder("World Map");
-    worldMapFolder.add(this.options.worldMap, "rows", 0, 400).step(5).name("Rows");
-    worldMapFolder.add(this.options.worldMap, "size", 0, 0.25).step(0.005).name("Size");
-    worldMapFolder.open();
+    // const worldMapFolder = this.gui.addFolder("World Map");
+    // worldMapFolder.add(this.options.worldMap, "rows", 0, 400).step(5).name("Rows");
+    // worldMapFolder.add(this.options.worldMap, "size", 0, 0.25).step(0.005).name("Size");
+    // worldMapFolder.open();
 
     const lightsFolder = this.gui.addFolder("Lights");
     for (const light of Object.keys(this.options.lights))
@@ -103,21 +103,21 @@ export default class DebugUI {
     this.options.rendering.fps = this.renderer.fps;
     this.options.rendering.drawTime = deltaTime;
 
-    if (this.renderer.worldMap !== null) {
-      const worldMapRowsChanged = this.options.worldMap.rows !== this.renderer.worldMap.rows;
-      const worldMapSizeChanged = this.options.worldMap.size !== this.renderer.worldMap.size
-      const worldMapChanged = worldMapRowsChanged || worldMapSizeChanged;
-      if (worldMapChanged) {
-        this.renderer.container.remove(this.renderer.worldMap.mesh);
-        this.renderer.worldMap = new WorldMap({
-          radius: this.renderer.worldMap.radius,
-          texture: this.renderer.worldMap.texture,
-          rows: this.options.worldMap.rows,
-          size: this.options.worldMap.size
-        });
-        this.renderer.container.add(this.renderer.worldMap.mesh);
-      }
-    }
+    // if (this.renderer.worldMap !== null) {
+    //   const worldMapRowsChanged = this.options.worldMap.rows !== this.renderer.worldMap.rows;
+    //   const worldMapSizeChanged = this.options.worldMap.size !== this.renderer.worldMap.size
+    //   const worldMapChanged = worldMapRowsChanged || worldMapSizeChanged;
+    //   if (worldMapChanged) {
+    //     this.renderer.container.remove(this.renderer.worldMap.mesh);
+    //     this.renderer.worldMap = new WorldMap({
+    //       radius: this.renderer.worldMap.radius,
+    //       texture: this.renderer.worldMap.texture,
+    //       rows: this.options.worldMap.rows,
+    //       size: this.options.worldMap.size
+    //     });
+    //     this.renderer.container.add(this.renderer.worldMap.mesh);
+    //   }
+    // }
   }
 
   update(deltaTime: number) {
@@ -127,18 +127,18 @@ export default class DebugUI {
       this.elapsedTime = 0;
     }
 
-    const haloEnabled = this.renderer.halo !== null;
-    if (this.options.rendering.enableHalo !== haloEnabled) {
-      if (this.options.rendering.enableHalo)
-        this.renderer.enableHalo(this.options.rendering.animateHalo);
-      else
-        this.renderer.disableHalo();
-    }
-
-
-    const haloAnimationEnabled = this.renderer.halo && this.renderer.halo.animate;
-    if (this.options.rendering.animateHalo !== haloAnimationEnabled && this.options.rendering.enableHalo)
-      this.renderer.enableHalo(this.options.rendering.animateHalo);
+    // const haloEnabled = this.renderer.halo !== null;
+    // if (this.options.rendering.enableHalo !== haloEnabled) {
+    //   if (this.options.rendering.enableHalo)
+    //     this.renderer.enableHalo(this.options.rendering.animateHalo);
+    //   else
+    //     this.renderer.disableHalo();
+    // }
+    //
+    //
+    // const haloAnimationEnabled = this.renderer.halo && this.renderer.halo.animate;
+    // if (this.options.rendering.animateHalo !== haloAnimationEnabled && this.options.rendering.enableHalo)
+    //   this.renderer.enableHalo(this.options.rendering.animateHalo);
 
     const starsEnabled = this.renderer.stars !== null;
     if (this.options.rendering.enableStars !== starsEnabled) {

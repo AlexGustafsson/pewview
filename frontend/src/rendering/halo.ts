@@ -73,6 +73,10 @@ export default class Halo {
     this.mesh.renderOrder = 3;
   }
 
+  updateSize(radius: number) {
+    // todo
+  }
+
   update(deltaTime: number) {
     if (this.animate) {
       this.elapsedTime = (this.elapsedTime + deltaTime) % 1e3;
