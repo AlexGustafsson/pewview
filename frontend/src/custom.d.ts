@@ -1,19 +1,19 @@
 declare module "*.vert" {
-  const content: any;
+  const content: string;
   export default content;
 }
 
 declare module "*.frag" {
-  const content: any;
+  const content: string;
   export default content;
 }
 
 declare module "*.css" {
-  const content: any;
+  const content: string;
   export default content;
 }
 
 declare module "*.html" {
-  const content: any;
+  const content: string;
   export default content;
 }

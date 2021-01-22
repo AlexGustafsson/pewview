@@ -7,8 +7,26 @@ import {
 
 import STARS_FRAGMENT_SHADER from "./shaders/stars.frag";
 
+type Uniform = {
+  type: string,
+  value: number | Vector2
+};
+
 export default class Stars {
-  constructor(radius) {
+  elapsedTime: number;
+  animate: boolean;
+  uniforms: {
+    noiseSeed: Uniform,
+    noiseScale: Uniform,
+    noiseIntensity: Uniform,
+    resolution: Uniform,
+    offset: Uniform
+  };
+  material: ShaderMaterial;
+  geometry: PlaneGeometry;
+  mesh: Mesh;
+
+  constructor(radius: number) {
     this.elapsedTime = 0;
     this.animate = false;
     this.uniforms = {
@@ -47,7 +65,7 @@ export default class Stars {
     this.mesh.scale.multiplyScalar(5);
   }
 
-  update(deltaTime) {
+  update(deltaTime: number) {
     if (this.animate) {
       this.elapsedTime = this.elapsedTime + deltaTime;
       this.uniforms.noiseSeed.value = this.elapsedTime / 2;
