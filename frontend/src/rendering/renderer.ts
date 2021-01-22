@@ -3,9 +3,6 @@ import {
   PerspectiveCamera,
   WebGLRenderer,
   Clock,
-  SpotLight,
-  DirectionalLight,
-  AmbientLight,
   Group,
   Vector3,
   Euler,
@@ -52,10 +49,6 @@ export default class Renderer extends EventEmitter {
   stars: Stars | null;
 
   earth: Earth | null;
-
-  ambientLights: {[key: string]: AmbientLight};
-  spotLights: {[key: string]: SpotLight};
-  directionalLights: {[key: string]: DirectionalLight};
 
   inputController: Controller | null;
 
@@ -136,32 +129,6 @@ export default class Renderer extends EventEmitter {
     // })
     // this.container.add(arch.mesh)
 
-    // Setup lights
-    this.ambientLights = {
-      light0: new AmbientLight(0xa9bfff, .8),
-    };
-
-    this.directionalLights = {
-      // Bottom light
-      light2: new DirectionalLight(0xa9bfff, 3),
-    };
-
-    this.spotLights = {
-      // The light blue atmospheric light
-      light1: new SpotLight(0x2188ff, 5, 120, .3, 0, 1.1),
-      // Highlight / focus light
-      light4: new SpotLight(0xf46bbe, 5, 75, .5, 0, 1.25)
-    };
-
-    for (const light of Object.values(this.directionalLights))
-      light.target = this.orbitContainer;
-
-    for (const light of Object.values(this.spotLights))
-      light.target = this.orbitContainer;
-
-    for (const light of this.lights)
-      this.scene.add(light);
-
     // Setup input controller (done when first mounted)
     this.inputController = null;
 
@@ -177,14 +144,6 @@ export default class Renderer extends EventEmitter {
       this.debugUI = debug ? new DebugUI({renderer: this}) : null;
       this.updateSize(true);
     });
-  }
-
-  get lights() {
-    return [
-      ...Object.values(this.ambientLights),
-      ...Object.values(this.directionalLights),
-      ...Object.values(this.spotLights)
-    ];
   }
 
   enableStars(animate = true) {
@@ -241,7 +200,7 @@ export default class Renderer extends EventEmitter {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(size.width, size.height);
 
-      const containerScale = 850 / size.height;
+      const containerScale = 800 / size.height;
       if (!IS_MOBILE) {
         this.orbitParentContainer.scale.set(containerScale, containerScale, containerScale);
         this.staticContainer.scale.set(containerScale, containerScale, containerScale);
@@ -250,23 +209,8 @@ export default class Renderer extends EventEmitter {
       this.orbitParentContainer.position.set(0, 0, 0);
       this.staticContainer.position.set(0, 0, 0);
 
-      this.spotLights.light1.position.set(this.orbitParentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
-      this.spotLights.light1.distance = 120 * containerScale;
-
-      this.directionalLights.light2.position.set(this.orbitParentContainer.position.x - 50, this.orbitParentContainer.position.y + 30, 10).multiplyScalar(containerScale);
-
-      // where's light3? previously light2
-      // this.lights.light3.position.set(this.parentContainer.position.x - 25, 0, 100).multiplyScalar(containerScale)
-      // this.light3.distance = 150 * containerScale
-
-      this.spotLights.light4.position.set(this.orbitParentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
-      this.spotLights.light4.distance = 75 * containerScale;
-
-      const scaledRadius = GLOBE_RADIUS * containerScale;
-      if (this.earth) {
-        this.earth.radius = scaledRadius;
-        this.earth.scale = containerScale;
-      }
+      if (this.earth)
+        this.earth.updateSize(GLOBE_RADIUS, containerScale);
     };
 
     if (immediate) {

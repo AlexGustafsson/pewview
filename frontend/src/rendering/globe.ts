@@ -129,13 +129,14 @@ export default class Globe {
     this.mesh.add(this.meshFill);
   }
 
-  updateSize(radius: number, scale: number) {
+  updateSize(radius: number, scale: number) {    
     this.radius = radius;
-    this.shadowPoint = this.origin.clone().add(new Vector3(.7 * this.radius, .3 * -this.radius, this.radius));
-    this.highlightPoint = this.origin.clone().add(new Vector3(1.5 * -this.radius, 1.5 * -this.radius, 0));
-    this.frontPoint = this.origin.clone().add(new Vector3(0, 0, this.radius));
+    const scaledRadius = this.radius * scale;
+    this.shadowPoint = this.origin.clone().add(new Vector3(.7 * scaledRadius, .3 * -scaledRadius, scaledRadius));
+    this.highlightPoint = this.origin.clone().add(new Vector3(1.5 * -scaledRadius, 1.5 * -scaledRadius, 0));
+    this.frontPoint = this.origin.clone().add(new Vector3(0, 0, scaledRadius));
 
-    this.shadowDist = 1.5 * this.radius;
+    this.shadowDist = 1.5 * scaledRadius;
     this.highlightDist = 5 * scale;
   }
 

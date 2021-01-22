@@ -23,7 +23,7 @@ export default class Stars {
 
   constructor(radius: number) {
     this.elapsedTime = 0;
-    this.animate = false;
+    this.animate = true;
     this.uniforms = {
       noiseSeed: {
         type: "f",

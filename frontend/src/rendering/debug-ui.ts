@@ -68,8 +68,8 @@ export default class DebugUI {
       lights: {}
     };
 
-    for (const light of renderer.lights)
-      this.options.lights[Object.values(this.options.lights).length.toString()] = light.visible;
+    // for (const light of renderer.lights)
+    //   this.options.lights[Object.values(this.options.lights).length.toString()] = light.visible;
 
     const renderingFolder = this.gui.addFolder("Rendering");
 
@@ -93,10 +93,10 @@ export default class DebugUI {
     // worldMapFolder.add(this.options.worldMap, "size", 0, 0.25).step(0.005).name("Size");
     // worldMapFolder.open();
 
-    const lightsFolder = this.gui.addFolder("Lights");
-    for (const light of Object.keys(this.options.lights))
-      lightsFolder.add(this.options.lights, light).name(`Enable Light ${light}`);
-    lightsFolder.open();
+    // const lightsFolder = this.gui.addFolder("Lights");
+    // for (const light of Object.keys(this.options.lights))
+    //   lightsFolder.add(this.options.lights, light).name(`Enable Light ${light}`);
+    // lightsFolder.open();
   }
 
   debouncedUpdate(deltaTime: number, _elapsedTime: number) {
@@ -152,16 +152,16 @@ export default class DebugUI {
     if (this.options.rendering.animateStars !== starsAnimationEnabled && this.options.rendering.enableStars)
       this.renderer.enableStars(this.options.rendering.animateStars);
 
-    let lightsChanged = false;
-    for (const [light, visible] of Object.entries(this.options.lights)) {
-      const lightIndex = Number.parseInt(light) as number;
-      if (visible !== (this.renderer.lights[lightIndex]).visible) {
-        this.renderer.lights[lightIndex].visible = visible;
-        lightsChanged = true;
-      }
-    }
-
-    if (lightsChanged)
-      this.renderer.updateSize();
+    // let lightsChanged = false;
+    // for (const [light, visible] of Object.entries(this.options.lights)) {
+    //   const lightIndex = Number.parseInt(light) as number;
+    //   if (visible !== (this.renderer.lights[lightIndex]).visible) {
+    //     this.renderer.lights[lightIndex].visible = visible;
+    //     lightsChanged = true;
+    //   }
+    // }
+    // // Fix for lights not being updated the first frames without being resized
+    // if (lightsChanged)
+    //   this.renderer.updateSize();
   }
 }

@@ -26,7 +26,7 @@ export default class Halo {
 
   constructor(radius: number) {
     this.elapsedTime = 0;
-    this.animate = false;
+    this.animate = true;
     this.uniforms = {
       c: {
         type: "f",
