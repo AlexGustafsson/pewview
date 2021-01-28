@@ -20,13 +20,14 @@ import WORLD_MAP from "../../static/map.png"
 
 import EventEmitter from "../event-emitter"
 
+import {START_ROTATION} from "./globals"
+
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
 const SIZE_UPDATE_DEBOUNCE_DELAY = 200;
 
 const GLOBE_RADIUS = 25;
 const WORLD_MAP_OFFSET = 0;
-const START_ROTATION = new Euler(.3, 4.6, .05)
 
 type RendererOptions = {
   theme?: Theme,
@@ -95,10 +96,10 @@ export default class Renderer extends EventEmitter {
     this.scene.add(this.orbitParentContainer);
     this.staticContainer = new Group();
     this.scene.add(this.staticContainer);
-    const rotation = START_ROTATION;
-    const offset = (new Date()).getTimezoneOffset();
-    rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
-    this.orbitContainer.rotation.copy(rotation);
+    // const rotation = START_ROTATION;
+    // const offset = (new Date()).getTimezoneOffset();
+    // rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
+    this.orbitContainer.rotation.copy(START_ROTATION);
 
     // Setup stars
     this.stars = null;

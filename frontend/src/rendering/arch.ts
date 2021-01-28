@@ -6,7 +6,7 @@ import {
   CubicBezierCurve3,
   TubeBufferGeometry,
 } from "three"
-import {coordinatesToEuler, radiansToDegrees, degreesToRadians} from "./utils"
+import {coordinatesToPoint, radiansToDegrees, degreesToRadians} from "./utils"
 
 function Cl(t: number, e: number, n: number, i: number): number[] {
     t = radiansToDegrees(t);
@@ -98,15 +98,15 @@ export default class Arch {
       })
     };
 
-    const startingPoint = coordinatesToEuler(source.latitude, source.longitude, globeRadius);
-    const endingPoint = coordinatesToEuler(destination.latitude, destination.longitude, globeRadius);
+    const startingPoint = coordinatesToPoint(source.latitude, source.longitude, globeRadius);
+    const endingPoint = coordinatesToPoint(destination.latitude, destination.longitude, globeRadius);
     const distance = startingPoint.distanceTo(endingPoint);
     // if (distance >= DISTANCE_THRESHOLD) {
     // }
     const height = distance > 1.85 * globeRadius ? 3.25 : distance > 1.4 * globeRadius ? 2.3 : 1.5;
     const t = Dl(distance, 0, 2 * globeRadius, 1, height);
     const n = Cl(source.latitude, source.longitude, destination.latitude, destination.longitude);
-    const i = coordinatesToEuler(n[0], n[1], globeRadius * t);
+    const i = coordinatesToPoint(n[0], n[1], globeRadius * t);
     // CubicBezierCurve3( v0 : Vector3, v1 : Vector3, v2 : Vector3, v3 : Vector3 )
     // v0 – The starting point.
     // v1 – The first control point.
@@ -125,8 +125,8 @@ export default class Arch {
 
     const landing = {
       // TODO: perhaps change the globe radius by some amount to avoid overlapping
-      position: coordinatesToEuler(destination.latitude, destination.longitude, globeRadius),
-      lookAt: coordinatesToEuler(destination.latitude, destination.longitude, globeRadius + 5)
+      position: coordinatesToPoint(destination.latitude, destination.longitude, globeRadius),
+      lookAt: coordinatesToPoint(destination.latitude, destination.longitude, globeRadius + 5)
     }
 
     // TubeBufferGeometry(path : Curve, tubularSegments : Integer, radius : Float, radialSegments : Integer, closed : Boolean)

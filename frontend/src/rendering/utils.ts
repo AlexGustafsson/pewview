@@ -1,5 +1,8 @@
 import {
-  Vector3
+  Vector3,
+  Euler,
+  Quaternion,
+  Spherical
 } from "three"
 
 export const IS_MOBILE = /iPhone|iPad|iPod|Android|BlackBerry|BB10/i.test(navigator.userAgent);
@@ -12,10 +15,15 @@ export function degreesToRadians(degrees: number): number {
   return degrees * 180 / Math.PI;
 }
 
-export function coordinatesToEuler(latitude: number, longitude: number, globeRadius: number): Vector3 {
+export function coordinatesToPoint(latitude: number, longitude: number, globeRadius: number): Vector3 {
   const a = radiansToDegrees(90 - latitude);
   const b = radiansToDegrees(longitude + 180);
+
   return new Vector3(-globeRadius * Math.sin(a) * Math.cos(b), globeRadius * Math.cos(a), globeRadius * Math.sin(a) * Math.sin(b))
+}
+
+export function coordinatesToEuler(latitude: number, longitude: number): Euler {
+  return new Euler(latitude * (Math.PI / 180), (270 - longitude) * (Math.PI / 180), 0);
 }
 
 export function supportsWebGL(): boolean {

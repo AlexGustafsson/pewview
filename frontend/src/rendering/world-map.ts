@@ -9,7 +9,7 @@ import type {
   Texture
 } from "three"
 
-import {getImageData, coordinatesToEuler, radiansToDegrees} from "./utils"
+import {getImageData, coordinatesToPoint, radiansToDegrees} from "./utils"
 
 const CIRCLE_DETAIL = 5;
 
@@ -45,9 +45,9 @@ export default class WorldMap {
         // Coordinates are shifted in the context
         if (!this.coordinateIsVisible(longitude, latitude, image))
           continue;
-        const position = coordinatesToEuler(latitude, longitude, radius);
+        const position = coordinatesToPoint(latitude, longitude, radius);
         map.position.set(position.x, position.y, position.z);
-        const lookAt = coordinatesToEuler(latitude, longitude, radius + 5);
+        const lookAt = coordinatesToPoint(latitude, longitude, radius + 5);
         map.lookAt(lookAt.x, lookAt.y, lookAt.z);
         map.updateMatrix();
         uniforms.push(map.matrix.clone())
