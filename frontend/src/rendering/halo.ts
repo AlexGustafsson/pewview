@@ -67,7 +67,7 @@ export default class Halo {
     });
 
     this.mesh = new Mesh(new SphereBufferGeometry(radius, 45, 45), this.material);
-    this.mesh.scale.multiplyScalar(1.15);
+    this.mesh.scale.multiplyScalar(1.1);
     this.mesh.rotateX(.03 * Math.PI);
     this.mesh.rotateY(.03 * Math.PI);
     this.mesh.renderOrder = 3;
