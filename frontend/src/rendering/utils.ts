@@ -1,8 +1,7 @@
 import {
   Vector3,
   Euler,
-  Quaternion,
-  Spherical
+  Quaternion
 } from "three"
 
 export const IS_MOBILE = /iPhone|iPad|iPod|Android|BlackBerry|BB10/i.test(navigator.userAgent);
@@ -22,8 +21,9 @@ export function coordinatesToPoint(latitude: number, longitude: number, globeRad
   return new Vector3(-globeRadius * Math.sin(a) * Math.cos(b), globeRadius * Math.cos(a), globeRadius * Math.sin(a) * Math.sin(b))
 }
 
-export function coordinatesToEuler(latitude: number, longitude: number): Euler {
-  return new Euler(latitude * (Math.PI / 180), (270 - longitude) * (Math.PI / 180), 0);
+export function coordinatesToRotation(latitude: number, longitude: number): Quaternion {
+  const euler = new Euler(latitude * (Math.PI / 180), (270 - longitude) * (Math.PI / 180), 0);
+  return new Quaternion().setFromEuler(euler);
 }
 
 export function supportsWebGL(): boolean {
@@ -32,6 +32,9 @@ export function supportsWebGL(): boolean {
   return context !== null;
 }
 
+export function easeOutCubic(x: number): number {
+  return 1 - Math.pow(1 - x, 3);
+}
 
 export function getImageData(texture: HTMLImageElement): ImageData {
   const canvas = document.createElement("canvas");

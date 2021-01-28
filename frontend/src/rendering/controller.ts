@@ -1,5 +1,5 @@
 import {
-  Euler
+  Euler, Quaternion
 } from "three"
 
 import type {
@@ -8,8 +8,7 @@ import type {
 
 import type Renderer from "./renderer"
 
-import { coordinatesToEuler } from "./utils"
-import { START_ROTATION } from "./globals"
+import { coordinatesToRotation, easeOutCubic} from "./utils"
 
 type ControllerOptions = {
   element: HTMLElement,
@@ -35,9 +34,12 @@ export default class Controller {
   object: Group;
   objectContainer: Group;
   renderer: Renderer;
-  rotation: Euler;
-  elapsed: number;
+  rotation: Quaternion;
+  progress: number;
+  easingDuration: number;
+  easedProgress: number;
   target: number;
+  previousTarget: number;
 
   constructor({
     element,
@@ -49,24 +51,29 @@ export default class Controller {
     this.object = object;
     this.objectContainer = objectContainer;
     this.renderer = renderer;
-    this.rotation = new Euler(0, 0, 0);
-    this.target = 0;
-    this.elapsed = 0;
+    this.rotation = new Quaternion();
+    this.previousTarget = 0;
+    this.target = 1;
+
+    this.easingDuration = 2;
+    this.progress = 0;
+    this.easedProgress = 0;
   }
 
   update(deltaTime: number) {
-    this.elapsed += deltaTime;
+    this.progress += deltaTime;
+    this.easedProgress = Math.min(Math.max(easeOutCubic(this.progress / this.easingDuration), 0), 1);
 
-    if (this.elapsed > 2) {
-      this.elapsed = 0;
-      const poi = POINTS_OF_INTEREST[this.target];
-      if (this.renderer.earth !== null)
-        this.rotation = coordinatesToEuler(poi.latitude, poi.longitude);
+    const previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
+    const targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
+    const easedRotation = previousRotation.slerp(targetRotation, this.easedProgress);
+    this.object.setRotationFromQuaternion(easedRotation)
+
+    if (this.progress > this.easingDuration) {
+      this.progress = 0;
+      this.previousTarget = this.target;
       this.target = (this.target + 1) % POINTS_OF_INTEREST.length;
     }
-    // this.rotation.y += deltaTime;
-
-    this.object.setRotationFromEuler(this.rotation);
 
     // let velocityX = 0;
     // let velocityY = 0;
