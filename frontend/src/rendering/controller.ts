@@ -41,6 +41,10 @@ export default class Controller {
   target: number;
   previousTarget: number;
 
+  previousRotation: Quaternion;
+  targetRotation: Quaternion;
+  currentRotation: Quaternion;
+
   constructor({
     element,
     object,
@@ -58,21 +62,25 @@ export default class Controller {
     this.easingDuration = 2;
     this.progress = 0;
     this.easedProgress = 0;
+
+    this.previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
+    this.targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
+    this.currentRotation = new Quaternion();
   }
 
   update(deltaTime: number) {
     this.progress += deltaTime;
-    this.easedProgress = Math.min(Math.max(easeOutCubic(this.progress / this.easingDuration), 0), 1);
+    this.easedProgress = easeOutCubic(Math.min(1, this.progress / this.easingDuration));
 
-    const previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
-    const targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
-    const easedRotation = previousRotation.slerp(targetRotation, this.easedProgress);
-    this.object.setRotationFromQuaternion(easedRotation)
+    Quaternion.slerp(this.previousRotation, this.targetRotation, this.currentRotation, this.easedProgress);
+    this.object.setRotationFromQuaternion(this.currentRotation);
 
     if (this.progress > this.easingDuration) {
       this.progress = 0;
       this.previousTarget = this.target;
       this.target = (this.target + 1) % POINTS_OF_INTEREST.length;
+      this.previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
+      this.targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
     }
 
     // let velocityX = 0;
