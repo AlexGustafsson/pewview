@@ -1,14 +1,11 @@
-import {
-  Euler, Quaternion
-} from "three"
-
 import type {
   Group
 } from "three"
 
 import type Renderer from "./renderer"
 
-import { coordinatesToRotation, easeOutCubic} from "./utils"
+import { coordinatesToRotation} from "./utils"
+import { EaseOutCubic, Slerp } from "./easings"
 
 type ControllerOptions = {
   element: HTMLElement,
@@ -34,16 +31,9 @@ export default class Controller {
   object: Group;
   objectContainer: Group;
   renderer: Renderer;
-  rotation: Quaternion;
-  progress: number;
-  easingDuration: number;
-  easedProgress: number;
-  target: number;
-  previousTarget: number;
 
-  previousRotation: Quaternion;
-  targetRotation: Quaternion;
-  currentRotation: Quaternion;
+  pointOfInterest: number;
+  rotationAnimation: Slerp;
 
   constructor({
     element,
@@ -55,33 +45,23 @@ export default class Controller {
     this.object = object;
     this.objectContainer = objectContainer;
     this.renderer = renderer;
-    this.rotation = new Quaternion();
-    this.previousTarget = 0;
-    this.target = 1;
 
-    this.easingDuration = 2;
-    this.progress = 0;
-    this.easedProgress = 0;
-
-    this.previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
-    this.targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
-    this.currentRotation = new Quaternion();
+    this.pointOfInterest = 0;
+    this.rotationAnimation = new Slerp(
+      coordinatesToRotation(POINTS_OF_INTEREST[this.pointOfInterest].latitude, POINTS_OF_INTEREST[this.pointOfInterest].longitude),
+      5,
+      EaseOutCubic
+    );
+    this.rotationAnimation.repeat = true;
+    this.rotationAnimation.on("done", () => {
+      this.pointOfInterest = (this.pointOfInterest + 1) % POINTS_OF_INTEREST.length;
+      this.rotationAnimation.to = coordinatesToRotation(POINTS_OF_INTEREST[this.pointOfInterest].latitude, POINTS_OF_INTEREST[this.pointOfInterest].longitude);
+    });
   }
 
   update(deltaTime: number) {
-    this.progress += deltaTime;
-    this.easedProgress = easeOutCubic(Math.min(1, this.progress / this.easingDuration));
-
-    Quaternion.slerp(this.previousRotation, this.targetRotation, this.currentRotation, this.easedProgress);
-    this.object.setRotationFromQuaternion(this.currentRotation);
-
-    if (this.progress > this.easingDuration) {
-      this.progress = 0;
-      this.previousTarget = this.target;
-      this.target = (this.target + 1) % POINTS_OF_INTEREST.length;
-      this.previousRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.previousTarget].latitude, POINTS_OF_INTEREST[this.previousTarget].longitude);
-      this.targetRotation = coordinatesToRotation(POINTS_OF_INTEREST[this.target].latitude, POINTS_OF_INTEREST[this.target].longitude);
-    }
+    this.rotationAnimation.update(deltaTime);
+    this.object.setRotationFromQuaternion(this.rotationAnimation.value);
 
     // let velocityX = 0;
     // let velocityY = 0;

@@ -32,10 +32,6 @@ export function supportsWebGL(): boolean {
   return context !== null;
 }
 
-export function easeOutCubic(x: number): number {
-  return 1 - Math.pow(1 - x, 3);
-}
-
 export function getImageData(texture: HTMLImageElement): ImageData {
   const canvas = document.createElement("canvas");
   canvas.width = texture.width;
