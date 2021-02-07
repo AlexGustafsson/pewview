@@ -199,7 +199,9 @@ export default class Renderer extends EventEmitter {
       const size = this.element.getBoundingClientRect();
       this.camera.aspect = size.width / size.height;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(size.width, size.height);
+      // TODO: This is a costly process (about 12ms)
+      // Makes resizing stutter more than necessary
+      this.renderer.setSize(size.width, size.height, false);
 
       const containerScale = 800 / size.height;
       if (!IS_MOBILE) {
