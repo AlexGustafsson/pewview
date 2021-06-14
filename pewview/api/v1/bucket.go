@@ -76,11 +76,6 @@ func (bucket *Bucket) AddConnection(connection *Connection) {
 
 // Strip removes all non-visisble metrics
 func (bucket *Bucket) Strip(config *MetricsConfiguration) {
-	// TODO: This is not really a great idea.
-	// First, it scales badly - three rows per entry
-	// Second, it forces default values for ports etc.
-	// Third, it does not provide secure defaults - every time a new field
-	// is added, if it is not added here, it will leak information
 	for _, connection := range bucket.Connections {
 		if connection.Metrics == nil {
 			continue
