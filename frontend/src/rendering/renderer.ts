@@ -5,12 +5,11 @@ import {
   Clock,
   Group,
   Vector3,
-  Euler,
   TextureLoader
 } from "three"
 import Theme from "./theme"
 import DebugUI from "./debug-ui"
-import Arch from "./arch"
+// import Arch from "./arch"
 import {IS_MOBILE} from "./utils"
 import Controller from "./controller"
 import Stars from "./stars"

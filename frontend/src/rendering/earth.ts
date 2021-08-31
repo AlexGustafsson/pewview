@@ -8,7 +8,6 @@ import {
 
 import type {
   Texture,
-  Scene
 } from "three"
 
 import Globe from "./globe"

@@ -1,11 +1,11 @@
 import {GUI} from "dat.gui"
-import WorldMap from "./world-map"
+// import WorldMap from "./world-map"
 
-import type {
-  SpotLight,
-  AmbientLight,
-  DirectionalLight
-} from "three"
+// import type {
+//   SpotLight,
+//   AmbientLight,
+//   DirectionalLight
+// } from "three"
 
 import type Renderer from "./renderer"
 
