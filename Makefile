@@ -40,9 +40,8 @@ dev: frontend
 
 # Generate NetFlow v5 traffic using nflow-generator
 # To install:
-# go get github.com/Sirupsen/logrus
-# go get github.com/jessevdk/go-flags
 # go get github.com/nerdalert/nflow-generator
+# See: https://github.com/nerdalert/nflow-generator/pull/6
 generate-traffic:
 	nflow-generator -t 127.0.0.1 -p 2056
 
