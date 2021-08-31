@@ -74,7 +74,7 @@ export default class Earth {
     for (const light of Object.values(this.lights))
       this.staticGroup.add(light);
 
-    this.halo = new Halo(radius);
+    this.halo = new Halo(radius, theme);
     this.staticGroup.add(this.halo.mesh);
 
     this.globe = new Globe({

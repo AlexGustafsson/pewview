@@ -38,6 +38,7 @@ async function main() {
     });
   });
   renderer.mount(container);
+
   // Render one frame to kick start all processes
   renderer.update();
   console.log(`Renderer created and mounted in ${performance.now() - beforeRender}ms`);

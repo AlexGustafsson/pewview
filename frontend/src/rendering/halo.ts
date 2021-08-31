@@ -8,6 +8,7 @@ import {
 
 import HALO_FRAGMENT_SHADER from "./shaders/halo.frag";
 import HALO_VERTEX_SHADER from "./shaders/halo.vert";
+import type Theme from "./theme";
 
 export default class Halo {
   elapsedTime: number;
@@ -24,7 +25,7 @@ export default class Halo {
   material: ShaderMaterial;
   mesh: Mesh;
 
-  constructor(radius: number) {
+  constructor(radius: number, theme: Theme) {
     this.elapsedTime = 0;
     this.animate = true;
     this.uniforms = {
@@ -50,7 +51,7 @@ export default class Halo {
       },
       glowColor: {
         type: "c",
-        value: new Color(0x1c2462)
+        value: new Color(theme.colors.halo.glow)
       },
       viewVector: {
         type: "v3",
