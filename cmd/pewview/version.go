@@ -1,7 +1,8 @@
-package commands
+package main
 
 import (
 	"fmt"
+
 	"github.com/AlexGustafsson/pewview/version"
 	"github.com/urfave/cli/v2"
 )

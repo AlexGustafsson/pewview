@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/AlexGustafsson/pewview/commands"
-	"github.com/AlexGustafsson/pewview/version"
-	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/AlexGustafsson/pewview/version"
+	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 var appHelpTemplate = `Usage: {{.Name}} [global options] command [command options] [arguments]
@@ -67,7 +67,7 @@ func main() {
 	app.Version = version.FullVersion()
 	app.CommandNotFound = commandNotFound
 	app.EnableBashCompletion = true
-	app.Commands = commands.Commands
+	app.Commands = Commands
 	app.HideVersion = true
 	app.Flags = []cli.Flag{
 		&cli.BoolFlag{

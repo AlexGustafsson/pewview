@@ -1,13 +1,14 @@
-package commands
+package main
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/AlexGustafsson/pewview/geoip"
 	"github.com/AlexGustafsson/pewview/pewview"
-	"github.com/AlexGustafsson/pewview/pewview/api/v1"
+	v1 "github.com/AlexGustafsson/pewview/pewview/api/v1"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"runtime"
 )
 
 func serveCommand(context *cli.Context) error {
