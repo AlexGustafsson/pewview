@@ -1,13 +1,14 @@
-package geoip
+package location
 
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // IPAPI is a database from ip-api.com

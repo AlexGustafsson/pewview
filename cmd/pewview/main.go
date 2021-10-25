@@ -1,86 +1,62 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"path/filepath"
-	"sort"
+	"runtime"
 
-	"github.com/AlexGustafsson/pewview/version"
-	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
+	"github.com/AlexGustafsson/pewview/internal/server"
+	flags "github.com/jessevdk/go-flags"
+	"go.uber.org/zap"
 )
 
-var appHelpTemplate = `Usage: {{.Name}} [global options] command [command options] [arguments]
-
-{{.Usage}}
-
-Version: {{.Version}}
-
-Options:
-  {{range .Flags}}{{.}}
-  {{end}}
-Commands:
-  {{range .Commands}}{{.Name}}{{ "\t" }}{{.Usage}}
-  {{end}}
-Run '{{.Name}} help command' for more information on a command.
-`
-
-var commandHelpTemplate = `Usage: pewview {{.Name}} [options] [arguments]
-
-{{.Usage}}{{if .Description}}
-
-Description:
-   {{.Description}}{{end}}{{if .Flags}}
-
-Options:{{range .Flags}}
-   {{.}}{{end}}{{end}}
-`
-
-func setDebugOutputLevel() {
-	for _, flag := range os.Args {
-		if flag == "-v" || flag == "--verbose" {
-			log.SetLevel(log.DebugLevel)
-		}
-	}
-}
-
-func commandNotFound(context *cli.Context, command string) {
-	log.Errorf(
-		"%s: '%s' is not a %s command. See '%s help'.",
-		context.App.Name,
-		command,
-		context.App.Name,
-		os.Args[0],
-	)
-	os.Exit(1)
-}
-
 func main() {
-	setDebugOutputLevel()
-
-	cli.AppHelpTemplate = appHelpTemplate
-	cli.CommandHelpTemplate = commandHelpTemplate
-
-	app := cli.NewApp()
-	app.Name = filepath.Base(os.Args[0])
-	app.Usage = "Visualize internet traffic"
-	app.Version = version.FullVersion()
-	app.CommandNotFound = commandNotFound
-	app.EnableBashCompletion = true
-	app.Commands = Commands
-	app.HideVersion = true
-	app.Flags = []cli.Flag{
-		&cli.BoolFlag{
-			Name:  "verbose, v",
-			Usage: "Enable verbose logging",
-		},
-	}
-
-	sort.Sort(cli.FlagsByName(app.Flags))
-	sort.Sort(cli.CommandsByName(app.Commands))
-
-	err := app.Run(os.Args)
+	logConfig := zap.NewProductionConfig()
+	log, err := logConfig.Build()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "failed to initialize logging: %v", err)
+		os.Exit(1)
 	}
+	defer log.Sync()
+
+	var config Config
+	_, err = flags.Parse(&config)
+	if err == flags.ErrHelp {
+		os.Exit(0)
+	} else if err != nil {
+		os.Exit(1)
+	}
+
+	if err := config.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "config validation failed: %v", err)
+		os.Exit(1)
+	}
+
+	logConfig.Level.SetLevel(config.Log.Level)
+
+	// Allow the runtime to span across multiple worker processes
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	server := &server.Server{
+		Workers: 1,
+
+		EnableIPFIX:  config.ConsumerIsEnabled("ipfix"),
+		IPFIXAddress: config.IPFix.Address,
+		IPFIXPort:    config.IPFix.Port,
+
+		EnableNetFlow:  config.ConsumerIsEnabled("netflow"),
+		NetFlowAddress: config.Netflow.Address,
+		NetFlowPort:    config.Netflow.Port,
+
+		EnableSFlow:  config.ConsumerIsEnabled("sflow"),
+		SFlowAddress: config.SFlow.Address,
+		SFlowPort:    config.SFlow.Port,
+
+		WebRoot:    "",
+		WebAddress: config.Web.Address,
+		WebPort:    config.Web.Port,
+
+		Window: config.Metrics.Window,
+	}
+	server.Start()
 }

@@ -1,8 +1,9 @@
-package geoip
+package location
 
 import (
-	"github.com/oschwald/maxminddb-golang"
 	"net"
+
+	"github.com/oschwald/maxminddb-golang"
 )
 
 // GeoLite is a database from MaxMind

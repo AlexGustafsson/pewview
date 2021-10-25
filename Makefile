@@ -2,7 +2,7 @@
 MAKEFLAGS += --silent
 
 # Add build-time variables
-PREFIX := $(shell go list ./version)
+PREFIX := $(shell go list ./internal/version)
 VERSION := v0.2.0
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
 GO_VERSION := $(shell go version)
@@ -58,7 +58,7 @@ server: build/pewview
 
 # Build for the native platform. For cross-platform builds, see "package" below
 build/pewview: $(source) Makefile
-	go build $(BUILD_FLAGS) -o $@ cmd/pewview/pewview.go
+	go build $(BUILD_FLAGS) -o $@ cmd/pewview/*.go
 
 # Build the frontend
 frontend: $(wildcard ./frontend/static/*)

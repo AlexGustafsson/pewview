@@ -1,19 +1,20 @@
-package pewview
+package server
 
 import (
 	"context"
 	"fmt"
-	"github.com/AlexGustafsson/pewview/geoip"
-	"github.com/AlexGustafsson/pewview/pewview/api/v1"
+	"math"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/AlexGustafsson/pewview/internal/location"
+	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
 	goflow "github.com/cloudflare/goflow/v3/utils"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
-	"math"
-	"net/http"
-	"os"
-	"time"
 )
 
 // Server is the core PewView server
@@ -41,7 +42,7 @@ type Server struct {
 
 	transport *Transport
 
-	GeoIP geoip.GeoIP
+	LocationProviders []location.Provider
 
 	WebRoot    string
 	WebAddress string

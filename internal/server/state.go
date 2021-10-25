@@ -1,12 +1,13 @@
-package pewview
+package server
 
 import (
 	"fmt"
-	"github.com/AlexGustafsson/pewview/geoip"
-	flowmessage "github.com/cloudflare/goflow/v3/pb"
-	log "github.com/sirupsen/logrus"
 	"net"
 	"time"
+
+	"github.com/AlexGustafsson/pewview/internal/location"
+	flowmessage "github.com/cloudflare/goflow/v3/pb"
+	log "github.com/sirupsen/logrus"
 )
 
 // State ...
@@ -25,10 +26,10 @@ type Connection struct {
 	Messages            []*flowmessage.FlowMessage
 	SourceAddress       net.IP
 	SourcePort          uint32
-	SourceLocation      *geoip.LookupResult
+	SourceLocation      *location.LookupResult
 	DestinationAddress  net.IP
 	DestinationPort     uint32
-	DestinationLocation *geoip.LookupResult
+	DestinationLocation *location.LookupResult
 }
 
 // NewState ...
@@ -64,7 +65,7 @@ func (state *State) Push(message *flowmessage.FlowMessage) {
 		connection.DestinationPort = message.DstPort
 		state.Connections[id] = connection
 
-		pair, err := geoip.LookupPair(state.Server.GeoIP, message.SrcAddr, message.DstAddr)
+		pair, err := location.LookupPair(state.Server.LocationProviders, message.SrcAddr, message.DstAddr)
 		if err == nil {
 			log.Debugf("Consumed interaction %v, %v (%v, %v) -> %v, %v (%v, %v)", stringOrDefault(pair.Source.CityName, "Unknown City Name"), stringOrDefault(pair.Source.CountryName, "Unknown Country Name"), pair.Source.Latitude, pair.Source.Longitude, stringOrDefault(pair.Destination.CityName, "Unknown City Name"), stringOrDefault(pair.Destination.CountryName, "Unknown Country Name"), pair.Destination.Latitude, pair.Destination.Longitude)
 
