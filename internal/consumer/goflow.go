@@ -32,11 +32,8 @@ func (consumer *BaseGoFlowConsumer) Publish(messages []*flowmessage.FlowMessage)
 	}
 }
 
-func (consumer *BaseGoFlowConsumer) Messages() chan *Message {
-	return consumer.messages
-}
-
-func (consumer *BaseGoFlowConsumer) Listen() error {
+func (consumer *BaseGoFlowConsumer) Listen(messages chan *Message) error {
 	consumer.log.Info("Listening", zap.String("address", consumer.address), zap.Int("port", consumer.port), zap.Int("workers", consumer.workers))
+	consumer.messages = messages
 	return consumer.state.FlowRoutine(consumer.workers, consumer.address, consumer.port, false)
 }

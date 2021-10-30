@@ -1,8 +1,9 @@
 package consumer
 
+import "fmt"
+
 type Consumer interface {
-	Listen() error
-	Messages() chan *Message
+	Listen(messages chan *Message) error
 }
 
 type Message struct {
@@ -11,4 +12,8 @@ type Message struct {
 	DestinationAddress string `json:"destinationAddress"`
 	DestinationPort    int    `json:"destinationPort"`
 	Bytes              uint64 `json:"bytes"`
+}
+
+func (message *Message) String() string {
+	return fmt.Sprintf("%dB from %s:%d to %s:%d", message.Bytes, message.SourceAddress, message.SourcePort, message.DestinationAddress, message.DestinationPort)
 }

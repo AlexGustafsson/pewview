@@ -18,10 +18,9 @@ type WebhookConsumer struct {
 
 func NewWebhookConsumer(address string, port int, log *zap.Logger) *WebhookConsumer {
 	return &WebhookConsumer{
-		address:  address,
-		port:     port,
-		log:      log,
-		messages: make(chan *Message),
+		address: address,
+		port:    port,
+		log:     log,
 	}
 }
 
@@ -29,8 +28,9 @@ func (consumer *WebhookConsumer) Messages() chan *Message {
 	return consumer.messages
 }
 
-func (consumer *WebhookConsumer) Listen() error {
+func (consumer *WebhookConsumer) Listen(messages chan *Message) error {
 	consumer.log.Info("Listening", zap.String("address", consumer.address), zap.Int("port", consumer.port))
+	consumer.messages = messages
 	server := &http.Server{
 		Handler:      consumer,
 		Addr:         fmt.Sprintf("%v:%v", consumer.address, consumer.port),

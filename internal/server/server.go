@@ -96,16 +96,29 @@ func (server *Server) handleState(state *State) {
 func (server *Server) Start(ctx context.Context) error {
 	log.Info("Starting PewView")
 
-	errorGroup, _ := errgroup.WithContext(ctx)
+	errorGroup, innerCtx := errgroup.WithContext(ctx)
+
+	messages := make(chan *consumer.Message, 1024)
 
 	for _, consumer := range server.Consumers {
-		errorGroup.Go(consumer.Listen)
+		consumer := consumer
+		errorGroup.Go(func() error {
+			return consumer.Listen(messages)
+		})
 	}
 
 	errorGroup.Go(server.startWeb)
 
+	// Consume messages
 	errorGroup.Go(func() error {
-		return nil
+		for {
+			select {
+			case message := <-messages:
+				fmt.Println(message.String())
+			case <-innerCtx.Done():
+				return nil
+			}
+		}
 	})
 
 	// Wait for all consumers to be started, returns the first error (if any)

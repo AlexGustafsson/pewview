@@ -12,11 +12,10 @@ type NetFlowConsumer struct {
 func NewNetFlowConsumer(address string, port int, workers int, log *zap.Logger) *NetFlowConsumer {
 	consumer := &NetFlowConsumer{
 		BaseGoFlowConsumer: BaseGoFlowConsumer{
-			address:  address,
-			port:     port,
-			workers:  workers,
-			messages: make(chan *Message),
-			log:      log.With(zap.String("consumer", "netflow")),
+			address: address,
+			port:    port,
+			workers: workers,
+			log:     log.With(zap.String("consumer", "netflow")),
 		},
 	}
 

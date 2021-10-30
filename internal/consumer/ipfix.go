@@ -12,11 +12,10 @@ type IPFixConsumer struct {
 func NewIPFixConsumer(address string, port int, workers int, log *zap.Logger) *IPFixConsumer {
 	consumer := &IPFixConsumer{
 		BaseGoFlowConsumer: BaseGoFlowConsumer{
-			address:  address,
-			port:     port,
-			workers:  workers,
-			messages: make(chan *Message),
-			log:      log.With(zap.String("consumer", "ipfix")),
+			address: address,
+			port:    port,
+			workers: workers,
+			log:     log.With(zap.String("consumer", "ipfix")),
 		},
 	}
 
