@@ -15,11 +15,11 @@ type Config struct {
 
 	/// Commands
 
-	Addresses []string `long:"lookup-address" description:"Print the location of the address and exit"`
+	Addresses []string `long:"lookup-address" description:"Print the location of the address and exit. May be used more than once"`
 
 	/// Consumers
 
-	EnabledConsumers []string `long:"consumer" description:"Consumers to enable" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook"`
+	EnabledConsumers []string `long:"consumer" description:"Enable a consumer. May be used more than once" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook"`
 
 	IPFix struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
@@ -46,7 +46,7 @@ type Config struct {
 
 	/// Location providers
 
-	EnabledLocationProviders []string `long:"location-provider" description:"Location providers to enable" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
+	EnabledLocationProviders []string `long:"location-provider" description:"Enable a location provider. May be used more than once" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
 
 	GeoLite struct {
 		Path string `long:"path" description:"Path to GeoLite2-City.mmdb"`

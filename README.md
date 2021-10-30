@@ -13,7 +13,7 @@
 </p>
 
 # PewView
-### A self-hosted network visualization on a 3D globe with support for IPFIX, Netflow and sFlow
+### A self-hosted network visualization on a 3D globe with support for IPFIX, Netflow, sFlow and more
 
 Note: PewView is currently being actively developed. Until it reaches v1.0.0 breaking changes may occur in minor versions.
 
@@ -30,10 +30,8 @@ You'll also need a GeoIP service to enable PewView to resolve IP addresses to lo
 
 The service can then be started like so:
 
-```
-pewview serve \
-  --consumer.netflow \
-  --geoip.ipapi
+```shell
+pewview --consumer=netflow --location-provider=ipapi
 ```
 
 ## Table of contents
@@ -90,56 +88,70 @@ make build
 
 _Note: This project is still actively being developed. The documentation is an ongoing progress._
 
-```
-Usage: pewview [global options] command [command options] [arguments]
+```shell
+# Run PewView, listening for incoming IPFix (Netflow v9) data, getting location data from ipapi.io
+pewview --consumer ipfix --location-provider ipapi
 
-Visualize internet traffic
-
-Version: v0.2.0, build 920cc38. Built Tue Jan 19 11:57:17 CET 2021 using go version go1.15.6 darwin/amd64
-
-Options:
-  --verbose   Enable verbose logging (default: false)
-  --help, -h  show help (default: false)
-
-Commands:
-  serve    Start the server
-  version  Show the application's version
-  help     Shows a list of commands or help for one command
-
-Run 'pewview help command' for more information on a command.
+# Lookup some addresses using the configured location provider(s)
+pewview --location-provider ipapi --lookup-address <ip>
 ```
 
-### Serve
-
 ```
-Usage: pewview serve [options] [arguments]
+Usage:
+  pewview [OPTIONS]
 
-Start the server
+Application Options:
+      --lookup-address=                                      Print the location of the address and exit. May be used more than once
+      --consumer=[ipfix|netflow|sflow|webhook]               Enable a consumer. May be used more than once
+      --address=                                             Listening address (default: <unset>)
+      --port=                                                Listening port (default: 8081)
+      --location-provider=[geolite|ipgeolocation|ipapi|file] Enable a location provider. May be used more than once
+      --queue=                                               Length of the pipeline's message queue (default: 1024)
 
-Options:
-   --consumer.ipfix                      Enable IPFIX / NetFlow v9 (default: false)
-   --consumer.ipfix.address value        Address to listen on for IPFIX / NetFlow v9 traffic
-   --consumer.ipfix.port value           Port to consume IPFIX / NetFlow v9 on (default: 2055)
-   --consumer.netflow                    Enable NetFlow v5 (default: false)
-   --consumer.netflow.address value      Address to listen on for NetFlow v5 traffic
-   --consumer.netflow.port value         Port to consume NetFlow v5 on (default: 2056)
-   --consumer.sflow                      Enable sFlow (default: false)
-   --consumer.sflow.address value        Address to listen on for sFlow traffic
-   --consumer.sflow.port value           Port to consume sFlow on (default: 6343)
-   --geoip.geolite                       Use GeoLite2 as a GeoIP database (default: false)
-   --geoip.geolite.path value            Path to GeoLite2-City.mmdb
-   --geoip.ipgeolocation                 Use ipgeolocation.io as a GeoIP database (default: false)
-   --geoip.ipgeolocation.key value       API key for ipgeolocation.io
-   --geoip.ipapi                         Use ip-api.com as a GeoIP database (default: false)
-   --web.root value                      The directory in which the UI lies (default: "./build/frontend")
-   --web.address value                   Address to listen on web traffic
-   --web.port value                      The port to use for web traffic (UI / API) (default: 8080)
-   --metrics.window value                The number of seconds to summarize in a block (default: 60)
-   --metrics.expose.bytes                Expose number of bytes sent in a connection (default: false)
-   --metrics.expose.source-address       Expose source address of a connection (default: false)
-   --metrics.expose.source-port          Expose source port of a connection (default: false)
-   --metrics.expose.destination-address  Expose destination address of a connection (default: false)
-   --metrics.expose.destination-port     Expose destination port of a connection (default: false)
+Logging:
+      --log.level=[debug|info|warn|error]                    Log level (default: info)
+
+IPFix Consumer:
+      --ipfix.address=                                       Listening address (default: <unset>)
+      --ipfix.port=                                          Listening port (default: 2055)
+      --ipfix.workers=                                       Worker count (default: 1)
+
+Netflow Consumer:
+      --netflow.address=                                     Listening address (default: <unset>)
+      --netflow.port=                                        Listening port (default: 2056)
+      --netflow.workers=                                     Worker count (default: 1)
+
+SFlow Consumer:
+      --sflow.address=                                       Listening address (default: <unset>)
+      --sflow.port=                                          Listening port (default: 6343)
+      --sflow.workers=                                       Worker count (default: 1)
+
+GeoLite Location Provider:
+      --geolite.path=                                        Path to GeoLite2-City.mmdb
+
+ipgeolocation.io Location Provider:
+      --ipgeolocation.key=                                   API key
+
+file Location Provider:
+      --file.path=                                           Path to JSON file containing patterns and locations
+
+Web:
+      --web.enable                                           Enable the built-in web interface
+      --web.address=                                         Listening address (default: <unset>)
+      --web.port=                                            Listening port (default: 8080)
+
+Metrics Tuning:
+      --metrics.window=                                      Number of seconds to summarize in a block (default: 60)
+
+Metrics to Expose:
+      --metrics.expose.bytes                                 Expose number of bytes sent in a connection
+      --metrics.expose.source-address                        Expose source address of a connection
+      --metrics.expose.source-port                           Expose source port of a connection
+      --metrics.expose.destination-address                   Expose destination address of a connection
+      --metrics.expose.destination-port                      Expose destination port of a connection
+
+Help Options:
+  -h, --help                                                 Show this help message
 ```
 
 ## IP Geolocation configuration
@@ -157,7 +169,7 @@ MaxMind's database is available offline, either free or paid. The paid version c
 
 For evaluation, you can download test data from [maxmind/MaxMind-DB](https://github.com/maxmind/MaxMind-DB/blob/c46c33c3c598c648013e2aa7458f8492f4ecfcce/test-data/GeoIP2-City-Test.mmdb) and follow the same procedures as above.
 
-Specify `--geoip.geolite --geoip.geolite.path ./data/GeoLite/GeoLite2-City.mmdb` when starting PewView.
+Specify `--location-provider=geolite --geolite.path=./data/GeoLite/GeoLite2-City.mmdb` when starting PewView.
 
 ### ipgeolocation.io (free, paid, online)
 
@@ -166,13 +178,13 @@ The [ipgeolocation.io](https://ipgeolocation.io) service has a free tier offerin
 1. Create an account on [https://ipgeolocation.io](https://ipgeolocation.io)
 2. Log in to get your API key
 
-Specify `--geoip.ipgeolocation --geoip.ipgeolocation.key <key>` when starting PewView.
+Specify `--location-provider=ipgeolocation --ipgeolocation.key=<key>` when starting PewView.
 
 ### ip-api.com (free, online)
 
 The [ip-api.com](https://ip-api.com) service is free, but it is served over HTTP and limited to 40 requests per minute. The paid alternative is currently not supported.
 
-Specify `--geoip.ipapi` when starting PewView.
+Specify `--location-provider=ipapi` when starting PewView.
 
 ## Contributing
 <a name="contributing"></a>
@@ -196,7 +208,4 @@ _Note: due to a bug (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93082, https:/
 
 ### Contributors
 
-This project was made possible by these two projects:
-
-* [Cloudflare's goflow](https://github.com/cloudflare/goflow) - used for consuming network traffic
-* [Vasco Asturiano's globe.gl](https://github.com/vasturiano/globe.gl) (and in turn Three.js) - used for rendering the globe in the frontend
+This project was made possible by [Cloudflare's goflow](https://github.com/cloudflare/goflow) which is used for consuming network traffic.
