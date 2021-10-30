@@ -4,23 +4,25 @@ import (
 	"net"
 
 	"github.com/oschwald/maxminddb-golang"
+	"go.uber.org/zap"
 )
 
-// GeoLite is a database from MaxMind
-type GeoLite struct {
-	Reader *maxminddb.Reader
+// GeoLiteProvider is a database from MaxMind
+type GeoLiteProvider struct {
+	database *maxminddb.Reader
+	log      *zap.Logger
 }
 
-// Open opens a database that will need to be closed
-func (database *GeoLite) Open(path string) error {
-	reader, err := maxminddb.Open(path)
+func NewGeoLiteProvider(path string, log *zap.Logger) (*GeoLiteProvider, error) {
+	database, err := maxminddb.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	database.Reader = reader
-
-	return nil
+	return &GeoLiteProvider{
+		database: database,
+		log:      log.With(zap.String("provider", "geolite")),
+	}, nil
 }
 
 func unwrap(values map[string]string, key string) string {
@@ -38,7 +40,7 @@ func unwrap(values map[string]string, key string) string {
 }
 
 // Lookup performs an IP lookup
-func (database *GeoLite) Lookup(ip net.IP) (*LookupResult, error) {
+func (provider *GeoLiteProvider) Lookup(ip net.IP) (*Location, error) {
 	var record struct {
 		City struct {
 			Names map[string]string `maxminddb:"names"`
@@ -54,12 +56,12 @@ func (database *GeoLite) Lookup(ip net.IP) (*LookupResult, error) {
 		} `maxminddb:"location"`
 	}
 
-	err := database.Reader.Lookup(ip, &record)
+	err := provider.database.Lookup(ip, &record)
 	if err != nil {
 		return nil, err
 	}
 
-	return &LookupResult{
+	return &Location{
 		CountryName:    unwrap(record.Country.Names, "en"),
 		CountryISOCode: record.Country.ISOCode,
 		CityName:       unwrap(record.City.Names, "en"),
@@ -70,8 +72,8 @@ func (database *GeoLite) Lookup(ip net.IP) (*LookupResult, error) {
 }
 
 // Close closes the database connection
-func (database *GeoLite) Close() {
-	if database.Reader != nil {
-		database.Reader.Close()
+func (provider *GeoLiteProvider) Close() {
+	if provider.database != nil {
+		provider.database.Close()
 	}
 }

@@ -20,7 +20,7 @@ import (
 // Server is the core PewView server
 type Server struct {
 	Consumers         []consumer.Consumer
-	LocationProviders []location.Provider
+	LocationProviders *location.ProviderSet
 
 	WebRoot    string
 	WebAddress string

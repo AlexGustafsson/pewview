@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/AlexGustafsson/pewview/internal/consumer"
+	"github.com/AlexGustafsson/pewview/internal/location"
 	"github.com/AlexGustafsson/pewview/internal/version"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -10,6 +12,10 @@ import (
 
 type Config struct {
 	Log LogConfig `group:"Logging" namespace:"log"`
+
+	/// Commands
+
+	Addresses []string `long:"lookup-address" description:"Print the location of the address and exit"`
 
 	/// Consumers
 
@@ -35,15 +41,19 @@ type Config struct {
 
 	/// Location providers
 
-	EnabledLocationProviders []string `long:"location-provider" description:"Location providers to enable" choice:"geolite" choice:"ipgeolocation" choice:"ipapi"`
+	EnabledLocationProviders []string `long:"location-provider" description:"Location providers to enable" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
 
 	GeoLite struct {
 		Path string `long:"path" description:"Path to GeoLite2-City.mmdb"`
-	} `group:"GeoLite Consumer" namespace:"geolite"`
+	} `group:"GeoLite Location Provider" namespace:"geolite"`
 
 	IPGeolocation struct {
 		Key string `long:"key" description:"API key"`
-	} `group:"ipgeolocation.io Consumer" namespace:"ipgeolocation"`
+	} `group:"ipgeolocation.io Location Provider" namespace:"ipgeolocation"`
+
+	File struct {
+		Path string `long:"path" description:"Path to JSON file containing patterns and locations"`
+	} `group:"file Location Provider" namespace:"file"`
 
 	/// Web
 
@@ -106,4 +116,66 @@ func (c *Config) ConsumerIsEnabled(name string) bool {
 		}
 	}
 	return false
+}
+
+func (c *Config) LocationProviderIsEnabled(name string) bool {
+	for _, other := range c.EnabledLocationProviders {
+		if name == other {
+			return true
+		}
+	}
+	return false
+}
+
+func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
+	var consumers []consumer.Consumer
+
+	if config.ConsumerIsEnabled("ipfix") {
+		consumer := consumer.NewIPFixConsumer(config.IPFix.Address, config.IPFix.Port, config.IPFix.Workers, log)
+		consumers = append(consumers, consumer)
+	}
+
+	if config.ConsumerIsEnabled("netflow") {
+		consumer := consumer.NewNetFlowConsumer(config.NetFlow.Address, config.NetFlow.Port, config.NetFlow.Workers, log)
+		consumers = append(consumers, consumer)
+	}
+
+	if config.ConsumerIsEnabled("sflow") {
+		consumer := consumer.NewSFlowConsumer(config.SFlow.Address, config.SFlow.Port, config.SFlow.Workers, log)
+		consumers = append(consumers, consumer)
+	}
+
+	return consumers, nil
+}
+
+func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet, error) {
+	var providers []location.Provider
+
+	if config.LocationProviderIsEnabled("geolite") {
+		provider, err := location.NewGeoLiteProvider(config.GeoLite.Path, log)
+		if err != nil {
+			return nil, err
+		}
+		providers = append(providers, provider)
+	}
+
+	if config.LocationProviderIsEnabled("ipgeolocation") {
+		provider := location.NewIPGeolocationProvider(config.IPGeolocation.Key, log)
+		providers = append(providers, provider)
+	}
+
+	if config.LocationProviderIsEnabled("ipapi") {
+		provider := location.NewIPAPIProvider(log)
+		providers = append(providers, provider)
+	}
+
+	if config.LocationProviderIsEnabled("file") {
+		provider, err := location.NewFileProvider(config.File.Path, log)
+		if err != nil {
+			return nil, err
+		}
+		providers = append(providers, provider)
+	}
+
+	return location.NewProviderSet(providers, log), nil
 }

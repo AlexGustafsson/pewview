@@ -9,10 +9,13 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
-// IPAPI is a database from ip-api.com
-type IPAPI struct{}
+// IPAPIProvider is a database from ip-api.com
+type IPAPIProvider struct {
+	log *zap.Logger
+}
 
 // IPAPIResponse is the response of a request to the API
 type IPAPIResponse struct {
@@ -32,8 +35,14 @@ type IPAPIResponse struct {
 	ASN          string  `json:"as"`
 }
 
+func NewIPAPIProvider(log *zap.Logger) *IPAPIProvider {
+	return &IPAPIProvider{
+		log: log.With(zap.String("provider", "ipapi")),
+	}
+}
+
 // Lookup performs an IP lookup
-func (database *IPAPI) Lookup(ip net.IP) (*LookupResult, error) {
+func (provider *IPAPIProvider) Lookup(ip net.IP) (*Location, error) {
 	client := http.Client{
 		Timeout: time.Second * 2,
 	}
@@ -57,7 +66,7 @@ func (database *IPAPI) Lookup(ip net.IP) (*LookupResult, error) {
 		return nil, err
 	}
 
-	return &LookupResult{
+	return &Location{
 		CountryName:    record.Country,
 		CountryISOCode: record.CountryCode,
 		CityName:       record.City,

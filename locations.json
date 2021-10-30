@@ -1,0 +1,18 @@
+{
+  "1.*": {
+    "CountryName": "Sweden",
+    "CountryISOCode": "SWE",
+    "CityName": "Stockholm",
+    "Latitude": 59.334591,
+    "Longitude": 18.063240,
+    "AccuracyRadius": 100
+  },
+  "2.*": {
+    "CountryName": "Great Britain",
+    "CountryISOCode": "GB",
+    "CityName": "London",
+    "Latitude": 51.509865,
+    "Longitude": -0.118092,
+    "AccuracyRadius": 100
+  }
+}

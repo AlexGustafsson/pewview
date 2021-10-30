@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"runtime"
 
-	"github.com/AlexGustafsson/pewview/internal/consumer"
+	"github.com/AlexGustafsson/pewview/internal/location"
 	"github.com/AlexGustafsson/pewview/internal/server"
 	flags "github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
@@ -39,25 +41,39 @@ func main() {
 	// Allow the runtime to span across multiple worker processes
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	var consumers []consumer.Consumer
-
-	if config.ConsumerIsEnabled("ipfix") {
-		consumer := consumer.NewIPFixConsumer(config.IPFix.Address, config.IPFix.Port, config.IPFix.Workers, log)
-		consumers = append(consumers, consumer)
+	consumers, err := config.Consumers(log)
+	if err != nil {
+		log.Fatal("Failed to configure consumers", zap.Error(err))
 	}
 
-	if config.ConsumerIsEnabled("netflow") {
-		consumer := consumer.NewNetFlowConsumer(config.NetFlow.Address, config.NetFlow.Port, config.NetFlow.Workers, log)
-		consumers = append(consumers, consumer)
+	locationProviders, err := config.LocationProviders(log)
+	if err != nil {
+		log.Fatal("Failed to configure location providers", zap.Error(err))
 	}
 
-	if config.ConsumerIsEnabled("sflow") {
-		consumer := consumer.NewSFlowConsumer(config.SFlow.Address, config.SFlow.Port, config.SFlow.Workers, log)
-		consumers = append(consumers, consumer)
+	if len(config.Addresses) > 0 {
+		var locations []*location.Location
+		for _, address := range config.Addresses {
+			ip := net.ParseIP(address)
+			if ip == nil {
+				log.Error("failed to parse address", zap.String("address", address))
+			}
+
+			location, err := locationProviders.Lookup(ip)
+			if err != nil {
+				log.Error("failed to lookup address", zap.String("address", address), zap.Error(err))
+			}
+
+			locations = append(locations, location)
+		}
+
+		json.NewEncoder(os.Stdout).Encode(locations)
+		return
 	}
 
 	server := &server.Server{
-		Consumers: consumers,
+		Consumers:         consumers,
+		LocationProviders: locationProviders,
 
 		WebRoot:    "",
 		WebAddress: config.Web.Address,

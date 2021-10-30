@@ -1,7 +1,15 @@
 package location
 
-// LookupResult is a location as resolved by a GeoIP interface
-type LookupResult struct {
+import (
+	"errors"
+)
+
+var (
+	ErrNotFound = errors.New("no location found")
+)
+
+// Location is a location as resolved by a GeoIP interface
+type Location struct {
 	CountryName    string
 	CountryISOCode string
 	CityName       string
@@ -10,18 +18,18 @@ type LookupResult struct {
 	AccuracyRadius uint16
 }
 
-// LookupResultPair is a source-destination pair of lookup results
-type LookupResultPair struct {
-	Source      *LookupResult
-	Destination *LookupResult
+// LocationPair is a source-destination pair of lookup results
+type LocationPair struct {
+	Source      *Location
+	Destination *Location
 }
 
 // HasCoordinates returns true if the coordinates are non-zero
-func (result *LookupResult) HasCoordinates() bool {
+func (result *Location) HasCoordinates() bool {
 	return result.Latitude != 0 && result.Longitude != 0
 }
 
 // HasCoordinates returns true if the coordinates are non-zero
-func (pair *LookupResultPair) HasCoordinates() bool {
+func (pair *LocationPair) HasCoordinates() bool {
 	return pair.Source.HasCoordinates() && pair.Destination.HasCoordinates()
 }

@@ -8,11 +8,14 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
 )
 
-// IPGeolocation is a database from ipgeolocation.io
-type IPGeolocation struct {
-	APIKey string
+// IPGeolocationProvider is a database from ipgeolocation.io
+type IPGeolocationProvider struct {
+	key string
+	log *zap.Logger
 }
 
 // IPGeolocationResponse is the response of a request to the API
@@ -56,13 +59,20 @@ type IPGeolocationResponse struct {
 	}
 }
 
+func NewIPGeolocationProvider(key string, log *zap.Logger) *IPGeolocationProvider {
+	return &IPGeolocationProvider{
+		key: key,
+		log: log.With(zap.String("provider", "ipgeolocation")),
+	}
+}
+
 // Lookup performs an IP lookup
-func (database *IPGeolocation) Lookup(ip net.IP) (*LookupResult, error) {
+func (provider *IPGeolocationProvider) Lookup(ip net.IP) (*Location, error) {
 	client := http.Client{
 		Timeout: time.Second * 2,
 	}
 
-	url := fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%v&ip=%v", database.APIKey, ip.String())
+	url := fmt.Sprintf("https://api.ipgeolocation.io/ipgeo?apiKey=%v&ip=%v", provider.key, ip.String())
 	response, err := client.Get(url)
 	if err != nil {
 		return nil, err
@@ -97,7 +107,7 @@ func (database *IPGeolocation) Lookup(ip net.IP) (*LookupResult, error) {
 		}
 	}
 
-	return &LookupResult{
+	return &Location{
 		CountryName:    record.CountryName,
 		CountryISOCode: record.CountryCode2,
 		CityName:       record.City,

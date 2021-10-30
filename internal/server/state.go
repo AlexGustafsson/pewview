@@ -26,10 +26,10 @@ type Connection struct {
 	Messages            []*flowmessage.FlowMessage
 	SourceAddress       net.IP
 	SourcePort          uint32
-	SourceLocation      *location.LookupResult
+	SourceLocation      *location.Location
 	DestinationAddress  net.IP
 	DestinationPort     uint32
-	DestinationLocation *location.LookupResult
+	DestinationLocation *location.Location
 }
 
 // NewState ...
@@ -65,7 +65,7 @@ func (state *State) Push(message *flowmessage.FlowMessage) {
 		connection.DestinationPort = message.DstPort
 		state.Connections[id] = connection
 
-		pair, err := location.LookupPair(state.Server.LocationProviders, message.SrcAddr, message.DstAddr)
+		pair, err := state.Server.LocationProviders.LookupPair(message.SrcAddr, message.DstAddr)
 		if err == nil {
 			log.Debugf("Consumed interaction %v, %v (%v, %v) -> %v, %v (%v, %v)", stringOrDefault(pair.Source.CityName, "Unknown City Name"), stringOrDefault(pair.Source.CountryName, "Unknown Country Name"), pair.Source.Latitude, pair.Source.Longitude, stringOrDefault(pair.Destination.CityName, "Unknown City Name"), stringOrDefault(pair.Destination.CountryName, "Unknown Country Name"), pair.Destination.Latitude, pair.Destination.Longitude)
 
