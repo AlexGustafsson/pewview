@@ -104,6 +104,10 @@ func (server *Server) Start(ctx context.Context) error {
 
 	errorGroup.Go(server.startWeb)
 
+	errorGroup.Go(func() error {
+		return nil
+	})
+
 	// Wait for all consumers to be started, returns the first error (if any)
 	return errorGroup.Wait()
 }

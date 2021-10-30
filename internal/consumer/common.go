@@ -6,9 +6,9 @@ type Consumer interface {
 }
 
 type Message struct {
-	SourceAddress      string
-	SourcePort         int
-	DestinationAddress string
-	DestinationPort    int
-	Bytes              uint64
+	SourceAddress      string `json:"sourceAddress"`
+	SourcePort         int    `json:"sourcePort"`
+	DestinationAddress string `json:"destinationAddress"`
+	DestinationPort    int    `json:"destinationPort"`
+	Bytes              uint64 `json:"bytes"`
 }

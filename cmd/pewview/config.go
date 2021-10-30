@@ -19,7 +19,7 @@ type Config struct {
 
 	/// Consumers
 
-	EnabledConsumers []string `long:"consumer" description:"Consumers to enable" choice:"ipfix" choice:"netflow" choice:"sflow"`
+	EnabledConsumers []string `long:"consumer" description:"Consumers to enable" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook"`
 
 	IPFix struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
@@ -39,6 +39,11 @@ type Config struct {
 		Workers int    `long:"workers" description:"Worker count" default:"1"`
 	} `group:"SFlow Consumer" namespace:"sflow"`
 
+	WebHook struct {
+		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
+		Port    int    `long:"port" description:"Listening port" default:"8081"`
+	}
+
 	/// Location providers
 
 	EnabledLocationProviders []string `long:"location-provider" description:"Location providers to enable" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
@@ -54,7 +59,6 @@ type Config struct {
 	File struct {
 		Path string `long:"path" description:"Path to JSON file containing patterns and locations"`
 	} `group:"file Location Provider" namespace:"file"`
-
 	/// Web
 
 	Web struct {
@@ -142,6 +146,11 @@ func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 
 	if config.ConsumerIsEnabled("sflow") {
 		consumer := consumer.NewSFlowConsumer(config.SFlow.Address, config.SFlow.Port, config.SFlow.Workers, log)
+		consumers = append(consumers, consumer)
+	}
+
+	if config.ConsumerIsEnabled("webhook") {
+		consumer := consumer.NewWebhookConsumer(config.WebHook.Address, config.WebHook.Port, log)
 		consumers = append(consumers, consumer)
 	}
 
