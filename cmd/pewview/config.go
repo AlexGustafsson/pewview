@@ -59,6 +59,7 @@ type Config struct {
 	File struct {
 		Path string `long:"path" description:"Path to JSON file containing patterns and locations"`
 	} `group:"file Location Provider" namespace:"file"`
+
 	/// Web
 
 	Web struct {
@@ -66,6 +67,12 @@ type Config struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"8080"`
 	} `group:"Web" namespace:"web"`
+
+	/// Pipeline
+
+	Pipeline struct {
+		QueueSize int `long:"queue" description:"Length of the pipeline's message queue" default:"1024"`
+	}
 
 	/// Metrics
 

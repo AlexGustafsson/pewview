@@ -3,41 +3,39 @@ package server
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/AlexGustafsson/pewview/internal/consumer"
-	"github.com/AlexGustafsson/pewview/internal/location"
 	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
+	"github.com/AlexGustafsson/pewview/internal/transform"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/sync/errgroup"
+	"go.uber.org/zap"
 )
 
 // Server is the core PewView server
 type Server struct {
-	Consumers         []consumer.Consumer
-	LocationProviders *location.ProviderSet
-
 	WebRoot    string
 	WebAddress string
 	WebPort    int
 
 	MetricsConfiguration *v1.MetricsConfiguration
 
-	api    *v1.API
 	Window float64
+
+	Log *zap.Logger
 }
 
-func (server *Server) startWeb() error {
+// Start the server using the configured values
+func (server *Server) Start(ctx context.Context, store *transform.Store) error {
+	server.Log.Info("Starting PewView")
+
 	router := mux.NewRouter()
 
 	// APIv1
-	server.api = v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), server.Window)
-	server.api.MetricsConfiguration = server.MetricsConfiguration
+	api := v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), store)
+	api.MetricsConfiguration = server.MetricsConfiguration
 
 	// Static files
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
@@ -49,78 +47,6 @@ func (server *Server) startWeb() error {
 		ReadTimeout:  5 * time.Second,
 	}
 
-	log.WithFields(log.Fields{"Type": "Web"}).Infof("Listening on TCP %v:%v", server.WebAddress, server.WebPort)
+	server.Log.Info("Listening", zap.String("address", server.WebAddress), zap.Int("port", server.WebPort))
 	return httpServer.ListenAndServe()
-}
-
-func (server *Server) handleState(state *State) {
-	log.Infof("Got state with %v connections between %v and %v", len(state.Connections), state.Start, state.End)
-	bucket := v1.NewBucket(uint64(time.Now().Unix())-uint64(state.Window), state.Window)
-	for _, connection := range state.Connections {
-		if !connection.SourceLocation.HasCoordinates() || !connection.DestinationLocation.HasCoordinates() {
-			log.Debugf("Skipping connectiong with missing location")
-			continue
-		}
-
-		bytes := uint64(0)
-		for _, message := range connection.Messages {
-			bytes += message.Bytes
-		}
-
-		v1connection := &v1.Connection{
-			VisibleOrigin:   math.Max(float64(connection.Start.Unix())-float64(bucket.Origin), 0),
-			VisibleDuration: connection.Duration().Seconds(),
-			Metrics: &v1.Metrics{
-				Bytes:              bytes,
-				SourceAddress:      connection.SourceAddress,
-				SourcePort:         connection.SourcePort,
-				DestinationAddress: connection.DestinationAddress,
-				DestinationPort:    connection.DestinationPort,
-			},
-		}
-
-		if connection.SourceLocation != nil {
-			v1connection.Source = v1.NewCoordinate(connection.SourceLocation.Latitude, connection.SourceLocation.Longitude)
-		}
-
-		if connection.DestinationLocation != nil {
-			v1connection.Destination = v1.NewCoordinate(connection.DestinationLocation.Latitude, connection.DestinationLocation.Longitude)
-		}
-
-		bucket.AddConnection(v1connection)
-	}
-	server.api.AddBucket(bucket)
-}
-
-// Start the server using the configured values
-func (server *Server) Start(ctx context.Context) error {
-	log.Info("Starting PewView")
-
-	errorGroup, innerCtx := errgroup.WithContext(ctx)
-
-	messages := make(chan *consumer.Message, 1024)
-
-	for _, consumer := range server.Consumers {
-		consumer := consumer
-		errorGroup.Go(func() error {
-			return consumer.Listen(messages)
-		})
-	}
-
-	errorGroup.Go(server.startWeb)
-
-	// Consume messages
-	errorGroup.Go(func() error {
-		for {
-			select {
-			case message := <-messages:
-				fmt.Println(message.String())
-			case <-innerCtx.Done():
-				return nil
-			}
-		}
-	})
-
-	// Wait for all consumers to be started, returns the first error (if any)
-	return errorGroup.Wait()
 }

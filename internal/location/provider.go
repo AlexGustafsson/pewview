@@ -37,7 +37,6 @@ func (set ProviderSet) Lookup(address net.IP) (*Location, error) {
 
 // LookupPair looks up two pairs at once
 func (set ProviderSet) LookupPair(sourceAddress net.IP, destinationAddress net.IP) (*LocationPair, error) {
-
 	source, err := set.Lookup(sourceAddress)
 	if err != nil {
 		return nil, ErrNotFound

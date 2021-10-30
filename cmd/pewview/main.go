@@ -8,10 +8,14 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
 	"github.com/AlexGustafsson/pewview/internal/server"
+	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
+	"github.com/AlexGustafsson/pewview/internal/transform"
 	flags "github.com/jessevdk/go-flags"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -45,6 +49,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to configure consumers", zap.Error(err))
 	}
+	aggregator := consumer.NewAggregator(consumers)
 
 	locationProviders, err := config.LocationProviders(log)
 	if err != nil {
@@ -72,15 +77,37 @@ func main() {
 	}
 
 	server := &server.Server{
-		Consumers:         consumers,
-		LocationProviders: locationProviders,
-
 		WebRoot:    "",
 		WebAddress: config.Web.Address,
 		WebPort:    config.Web.Port,
-
-		Window: config.Metrics.Window,
+		Log:        log,
+		MetricsConfiguration: &v1.MetricsConfiguration{
+			IncludeBytes:              config.Metrics.Expose.Bytes,
+			IncludeSourceAddress:      config.Metrics.Expose.SourceAddress,
+			IncludeSourcePort:         config.Metrics.Expose.SourcePort,
+			IncludeDestinationAddress: config.Metrics.Expose.DestinationAddress,
+			IncludeDestinationPort:    config.Metrics.Expose.DestinationPort,
+		},
 	}
 
-	server.Start(context.Background())
+	errGroup, ctx := errgroup.WithContext(context.Background())
+
+	store := transform.NewStore()
+	errGroup.Go(func() error {
+		store.Load(ctx)
+		return nil
+	})
+
+	pipeline := transform.NewPipeline(aggregator, locationProviders, config.Pipeline.QueueSize, log)
+	errGroup.Go(func() error {
+		return pipeline.Start(ctx, store.Input())
+	})
+
+	errGroup.Go(func() error {
+		return server.Start(ctx, store)
+	})
+
+	if err := errGroup.Wait(); err != nil {
+		log.Fatal("PewView failed to run", zap.Error(err))
+	}
 }
