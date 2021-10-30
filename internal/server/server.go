@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
 	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
-	goflow "github.com/cloudflare/goflow/v3/utils"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -19,29 +19,7 @@ import (
 
 // Server is the core PewView server
 type Server struct {
-	Address string
-	Workers int
-
-	// NetFlow v9 / IPFIX
-	EnableIPFIX  bool
-	IPFIXAddress string
-	IPFIXPort    int
-	ipfix        *goflow.StateNetFlow
-
-	// NetFlow v5 / IPFIX
-	EnableNetFlow  bool
-	NetFlowAddress string
-	NetFlowPort    int
-	netFlow        *goflow.StateNFLegacy
-
-	// SFlow
-	EnableSFlow  bool
-	SFlowAddress string
-	SFlowPort    int
-	sFlow        *goflow.StateSFlow
-
-	transport *Transport
-
+	Consumers         []consumer.Consumer
 	LocationProviders []location.Provider
 
 	WebRoot    string
@@ -54,44 +32,7 @@ type Server struct {
 	Window float64
 }
 
-func (server *Server) startIPFIX(errorGroup *errgroup.Group) {
-	server.ipfix = &goflow.StateNetFlow{
-		Transport: server.transport,
-		Logger:    log.StandardLogger(),
-	}
-
-	errorGroup.Go(func() error {
-		log.WithFields(log.Fields{"Type": "IPFIX"}).Infof("Listening on UDP %v:%v", server.Address, server.IPFIXPort)
-
-		return server.ipfix.FlowRoutine(server.Workers, server.IPFIXAddress, server.IPFIXPort, false)
-	})
-}
-
-func (server *Server) startNetFlow(errorGroup *errgroup.Group) {
-	server.netFlow = &goflow.StateNFLegacy{
-		Transport: server.transport,
-		Logger:    log.StandardLogger(),
-	}
-
-	errorGroup.Go(func() error {
-		log.WithFields(log.Fields{"Type": "NetFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.NetFlowPort)
-		return server.netFlow.FlowRoutine(server.Workers, server.NetFlowAddress, server.NetFlowPort, false)
-	})
-}
-
-func (server *Server) startSFlow(errorGroup *errgroup.Group) {
-	server.sFlow = &goflow.StateSFlow{
-		Transport: server.transport,
-		Logger:    log.StandardLogger(),
-	}
-
-	errorGroup.Go(func() error {
-		log.WithFields(log.Fields{"Type": "sFlow"}).Infof("Listening on UDP %v:%v", server.Address, server.SFlowPort)
-		return server.sFlow.FlowRoutine(server.Workers, server.SFlowAddress, server.SFlowPort, false)
-	})
-}
-
-func (server *Server) startWeb(errorGroup *errgroup.Group) {
+func (server *Server) startWeb() error {
 	router := mux.NewRouter()
 
 	// APIv1
@@ -108,10 +49,8 @@ func (server *Server) startWeb(errorGroup *errgroup.Group) {
 		ReadTimeout:  5 * time.Second,
 	}
 
-	errorGroup.Go(func() error {
-		log.WithFields(log.Fields{"Type": "Web"}).Infof("Listening on TCP %v:%v", server.Address, server.WebPort)
-		return httpServer.ListenAndServe()
-	})
+	log.WithFields(log.Fields{"Type": "Web"}).Infof("Listening on TCP %v:%v", server.WebAddress, server.WebPort)
+	return httpServer.ListenAndServe()
 }
 
 func (server *Server) handleState(state *State) {
@@ -154,40 +93,17 @@ func (server *Server) handleState(state *State) {
 }
 
 // Start the server using the configured values
-func (server *Server) Start() error {
-	if server.Workers <= 0 {
-		server.Workers = 1
-	}
-
-	server.transport = NewTransport(server, server.Window)
-	server.transport.Callback = server.handleState
-
+func (server *Server) Start(ctx context.Context) error {
 	log.Info("Starting PewView")
 
-	errorGroup, _ := errgroup.WithContext(context.Background())
+	errorGroup, _ := errgroup.WithContext(ctx)
 
-	// Initialize IPFIX / NetFlow v9
-	if server.EnableIPFIX {
-		server.startIPFIX(errorGroup)
+	for _, consumer := range server.Consumers {
+		errorGroup.Go(consumer.Listen)
 	}
 
-	// NetFlow v5
-	if server.EnableNetFlow {
-		server.startNetFlow(errorGroup)
-	}
-
-	if server.EnableSFlow {
-		server.startSFlow(errorGroup)
-	}
-
-	server.startWeb(errorGroup)
+	errorGroup.Go(server.startWeb)
 
 	// Wait for all consumers to be started, returns the first error (if any)
-	err := errorGroup.Wait()
-	if err != nil {
-		log.Errorf("Error: Unable to start server: %v", err)
-		return fmt.Errorf("unable to start server")
-	}
-
-	return nil
+	return errorGroup.Wait()
 }

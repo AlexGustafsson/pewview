@@ -18,17 +18,20 @@ type Config struct {
 	IPFix struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"2055"`
+		Workers int    `long:"workers" description:"Worker count" default:"1"`
 	} `group:"IPFix Consumer" namespace:"ipfix"`
 
-	Netflow struct {
+	NetFlow struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"2056"`
+		Workers int    `long:"workers" description:"Worker count" default:"1"`
 	} `group:"Netflow Consumer" namespace:"netflow"`
 
 	SFlow struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"6343"`
-	} `group:"SFlow Consumer" namespace:"spflow"`
+		Workers int    `long:"workers" description:"Worker count" default:"1"`
+	} `group:"SFlow Consumer" namespace:"sflow"`
 
 	/// Location providers
 
