@@ -8,9 +8,6 @@ COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
 GO_VERSION := $(shell go version)
 COMPILE_TIME := $(shell LC_ALL=en_US date)
 
-# Supported browsers
-BROWSERLIST := chrome87,firefox84,safari14,edge86
-
 BUILD_VARIABLES := -X "$(PREFIX).Version=$(VERSION)" -X "$(PREFIX).Commit=$(COMMIT)" -X "$(PREFIX).GoVersion=$(GO_VERSION)" -X "$(PREFIX).CompileTime=$(COMPILE_TIME)"
 BUILD_FLAGS := -ldflags '$(BUILD_VARIABLES)'
 
@@ -22,21 +19,17 @@ zip = cd build && zip $(1)_$(2).zip $(binary)$(3) && rm $(binary)$(3)
 
 source := $(shell find . -type f -name '*.go')
 
-.PHONY: help build package frontend server dev generate-traffic windows darwin linux watch format lint clean
+.PHONY: help build package frontend server generate-traffic windows darwin linux format lint clean
 
 # Produce a short description of available make commands
 help:
 	pcregrep -Mo '^(#.*\n)+^[^# ]+:' Makefile | sed "s/^\([^# ]\+\):/> \1/g" | sed "s/^#\s\+\(.\+\)/\1/g" | GREP_COLORS='ms=1;34' grep -E --color=always '^>.*|$$' | GREP_COLORS='ms=1;37' grep -E --color=always '^[^>].*|$$'
 
 # Build for the native platform
-build: frontend build/pewview
+build: frontend server
 
 # Package for all platforms
-package: ./build/frontend.zip windows darwin linux
-
-# Run a development server for the frontend
-dev: frontend
-	python3 -m http.server --directory ./build/frontend 8080
+package: windows darwin linux
 
 # Generate NetFlow v5 traffic using nflow-generator
 # To install:
@@ -61,13 +54,8 @@ build/pewview: $(source) Makefile
 	go build $(BUILD_FLAGS) -o $@ cmd/pewview/*.go
 
 # Build the frontend
-frontend: $(wildcard ./frontend/static/*)
-	mkdir -p build/frontend
-	cd frontend && npm run build
-	cp frontend/dist/* build/frontend
-
-./build/frontend.zip: frontend
-	zip ./build/frontend.zip -r ./build/frontend
+frontend:
+	cd frontend && yarn build
 
 # Build for Linux
 linux: build/linux_arm.tar.gz build/linux_arm64.tar.gz build/linux_386.tar.gz build/linux_amd64.tar.gz
@@ -101,4 +89,4 @@ build/darwin_amd64.tar.gz: $(sources)
 
 # Clean all dynamically created files
 clean:
-	rm -rf ./build &> /dev/null || true
+	rm -rf ./build ./frontend/node_modules ./fronend/dist &> /dev/null || true
