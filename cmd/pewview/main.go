@@ -78,7 +78,6 @@ func main() {
 	}
 
 	server := &server.Server{
-		WebRoot:    "",
 		WebAddress: config.Web.Address,
 		WebPort:    config.Web.Port,
 		Log:        log,

@@ -16,7 +16,6 @@ import (
 
 // Server is the core PewView server
 type Server struct {
-	WebRoot    string
 	WebAddress string
 	WebPort    int
 
@@ -38,7 +37,8 @@ func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 	api.MetricsConfiguration = server.MetricsConfiguration
 
 	// Static files
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
+	// TODO: Include as compiled FS
+	// router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
 
 	httpServer := &http.Server{
 		Handler:      handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, router)),
