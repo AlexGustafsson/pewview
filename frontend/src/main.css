@@ -19,7 +19,7 @@ html, body {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
-  transition: 0.5s opacity;
+  transition: 0.5s all;
   pointer-events: none;
   display: flex;
   align-items: center;

@@ -51,8 +51,10 @@ async function main() {
   // Start the renderer
   renderer.start();
   const loadingOverlay = document.getElementById("loading-overlay");
-  if (loadingOverlay !== null)
+  if (loadingOverlay !== null) {
     loadingOverlay.style.opacity = "0";
+    loadingOverlay.style.transform = "scale(1.5)";
+  }
 
   // Fetch data
   const client = new Client(import.meta.env.VITE_API_ENDPOINT);
