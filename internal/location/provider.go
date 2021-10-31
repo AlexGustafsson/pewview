@@ -26,10 +26,15 @@ func NewProviderSet(providers []Provider, log *zap.Logger) *ProviderSet {
 
 // Lookup implements Provider
 func (set ProviderSet) Lookup(address net.IP) (*Location, error) {
-	for _, provider := range set.Providers {
+	for i, provider := range set.Providers {
 		location, err := provider.Lookup(address)
 		if err != nil {
 			set.log.Error("failed to lookup source", zap.Error(err))
+			continue
+		}
+
+		if !location.HasCoordinates() {
+			set.log.Debug("provider returned zeroed coordinates", zap.Int("index", i))
 			continue
 		}
 
