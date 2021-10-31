@@ -120,6 +120,7 @@ func main() {
 		APIs:           []api.API{apiv1},
 		ExposeMetrics:  config.Prometheus.Enable,
 		EnableFrontend: !config.Web.Disable,
+		AllowedOrigins: config.Web.AllowedOrigins,
 		Log:            log,
 	}
 	errGroup.Go(func() error {

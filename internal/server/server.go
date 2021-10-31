@@ -18,8 +18,9 @@ import (
 
 // Server exposes APIs, metrics and the frontend
 type Server struct {
-	WebAddress string
-	WebPort    int
+	WebAddress     string
+	WebPort        int
+	AllowedOrigins []string
 
 	ExposeMetrics  bool
 	EnableFrontend bool
@@ -34,6 +35,8 @@ func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 	server.Log.Info("Starting PewView")
 
 	router := mux.NewRouter()
+
+	router.Use(handlers.CORS(handlers.AllowedOrigins(server.AllowedOrigins)))
 
 	for _, api := range server.APIs {
 		api.SetupRoutes(router)

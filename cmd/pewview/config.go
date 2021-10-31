@@ -64,9 +64,10 @@ type Config struct {
 	/// Web
 
 	Web struct {
-		Disable bool   `long:"disable" description:"Disable the built-in web interface"`
-		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
-		Port    int    `long:"port" description:"Listening port" default:"8080"`
+		Disable        bool     `long:"disable" description:"Disable the built-in web interface"`
+		Address        string   `long:"address" description:"Listening address" default-mask:"<unset>"`
+		Port           int      `long:"port" description:"Listening port" default:"8080"`
+		AllowedOrigins []string `long:"origin" description:"Origin to allow" default:"*"`
 	} `group:"Web" namespace:"web"`
 
 	/// Pipeline
