@@ -6,6 +6,7 @@ import (
 
 	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -15,6 +16,10 @@ type Pipeline struct {
 	window            time.Duration
 	messages          chan *consumer.Message
 	log               *zap.Logger
+
+	processedMessagesCounter prometheus.Counter
+	publishedMessagesCounter prometheus.Counter
+	publishedWindowsCounter  prometheus.Counter
 }
 
 func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSet, queueSize int, window time.Duration, log *zap.Logger) *Pipeline {
@@ -24,6 +29,22 @@ func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSe
 		window:            window,
 		messages:          make(chan *consumer.Message, queueSize),
 		log:               log,
+
+		processedMessagesCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "pewview",
+			Subsystem: "pipeline",
+			Name:      "processed_messages_count",
+		}),
+		publishedMessagesCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "pewview",
+			Subsystem: "pipeline",
+			Name:      "published_messages_count",
+		}),
+		publishedWindowsCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "pewview",
+			Subsystem: "pipeline",
+			Name:      "published_windows_count",
+		}),
 	}
 }
 
@@ -37,6 +58,7 @@ func (pipeline *Pipeline) Start(ctx context.Context, out chan *CondensedWindow) 
 		select {
 		case message := <-pipeline.messages:
 			window.Add(message)
+			pipeline.processedMessagesCounter.Inc()
 		case <-ticker.C:
 			oldWindow := window
 			window = NewWindow(pipeline.window)
@@ -50,4 +72,16 @@ func (pipeline *Pipeline) Start(ctx context.Context, out chan *CondensedWindow) 
 func (pipeline *Pipeline) publish(window *Window, out chan *CondensedWindow) {
 	condensed := window.Condense(pipeline.locationProviders)
 	out <- condensed
+	pipeline.publishedWindowsCounter.Inc()
+	pipeline.publishedMessagesCounter.Add(float64(len(condensed.Connections)))
+}
+
+func (pipeline *Pipeline) Collect(c chan<- prometheus.Metric) {
+	c <- pipeline.processedMessagesCounter
+	c <- pipeline.publishedWindowsCounter
+}
+
+func (pipeline *Pipeline) Describe(c chan<- *prometheus.Desc) {
+	c <- pipeline.processedMessagesCounter.Desc()
+	c <- pipeline.publishedWindowsCounter.Desc()
 }

@@ -12,9 +12,11 @@ import (
 	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
 	"github.com/AlexGustafsson/pewview/internal/server"
+	"github.com/AlexGustafsson/pewview/internal/server/api"
 	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
 	"github.com/AlexGustafsson/pewview/internal/transform"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
@@ -77,32 +79,38 @@ func main() {
 		return
 	}
 
-	server := &server.Server{
-		WebAddress: config.Web.Address,
-		WebPort:    config.Web.Port,
-		Log:        log,
-		MetricsConfiguration: &v1.MetricsConfiguration{
-			IncludeBytes:              config.Metrics.Expose.Bytes,
-			IncludeSourceAddress:      config.Metrics.Expose.SourceAddress,
-			IncludeSourcePort:         config.Metrics.Expose.SourcePort,
-			IncludeDestinationAddress: config.Metrics.Expose.DestinationAddress,
-			IncludeDestinationPort:    config.Metrics.Expose.DestinationPort,
-		},
-	}
-
 	errGroup, ctx := errgroup.WithContext(context.Background())
 
 	store := transform.NewStore(time.Now(), config.Metrics.Window, log)
+	prometheus.DefaultRegisterer.MustRegister(store)
 	errGroup.Go(func() error {
 		store.Load(ctx)
 		return nil
 	})
 
 	pipeline := transform.NewPipeline(aggregator, locationProviders, config.Pipeline.QueueSize, config.Metrics.Window, log)
+	prometheus.DefaultRegisterer.MustRegister(pipeline)
 	errGroup.Go(func() error {
 		return pipeline.Start(ctx, store.Input())
 	})
 
+	apiv1 := v1.NewAPI(store)
+	apiv1.MetricsConfiguration = &v1.MetricsConfiguration{
+		IncludeBytes:              config.Metrics.Expose.Bytes,
+		IncludeSourceAddress:      config.Metrics.Expose.SourceAddress,
+		IncludeSourcePort:         config.Metrics.Expose.SourcePort,
+		IncludeDestinationAddress: config.Metrics.Expose.DestinationAddress,
+		IncludeDestinationPort:    config.Metrics.Expose.DestinationPort,
+	}
+	prometheus.DefaultRegisterer.MustRegister(apiv1)
+
+	server := &server.Server{
+		WebAddress:    config.Web.Address,
+		WebPort:       config.Web.Port,
+		APIs:          []api.API{apiv1},
+		ExposeMetrics: config.Prometheus.Enable,
+		Log:           log,
+	}
 	errGroup.Go(func() error {
 		return server.Start(ctx, store)
 	})

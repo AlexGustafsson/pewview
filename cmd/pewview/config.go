@@ -88,6 +88,12 @@ type Config struct {
 			DestinationPort    bool `long:"destination-port" description:"Expose destination port of a connection"`
 		} `group:"Metrics to Expose" namespace:"expose"`
 	} `group:"Metrics Tuning" namespace:"metrics"`
+
+	/// Prometheus
+
+	Prometheus struct {
+		Enable bool `long:"enable" description:"Enable /metrics endpoint"`
+	} `group:"Prometheus" namespace:"prometheus"`
 }
 
 func (Config) Version() string {

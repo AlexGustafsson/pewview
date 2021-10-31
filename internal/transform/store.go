@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -14,6 +15,8 @@ type Store struct {
 	window  float64
 	in      chan *CondensedWindow
 	log     *zap.Logger
+
+	storedWindowsCounter prometheus.Counter
 }
 
 func NewStore(start time.Time, window time.Duration, log *zap.Logger) *Store {
@@ -23,6 +26,12 @@ func NewStore(start time.Time, window time.Duration, log *zap.Logger) *Store {
 		window:  window.Seconds(),
 		in:      make(chan *CondensedWindow),
 		log:     log,
+
+		storedWindowsCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "pewview",
+			Subsystem: "store",
+			Name:      "stored_windows_count",
+		}),
 	}
 }
 
@@ -33,6 +42,7 @@ func (store *Store) Load(ctx context.Context) {
 			index := math.Floor(input.Start.UTC().Sub(store.start).Seconds() / store.window)
 			store.log.Debug("Adding window to store", zap.Time("start", input.Start), zap.Float64("index", index), zap.Int("connections", len(input.Connections)))
 			store.windows[index] = input
+			store.storedWindowsCounter.Inc()
 		case <-ctx.Done():
 			return
 		}
@@ -56,4 +66,12 @@ func (store *Store) Window(time time.Time) *CondensedWindow {
 	}
 
 	return nil
+}
+
+func (store *Store) Collect(c chan<- prometheus.Metric) {
+	c <- store.storedWindowsCounter
+}
+
+func (store *Store) Describe(c chan<- *prometheus.Desc) {
+	c <- store.storedWindowsCounter.Desc()
 }

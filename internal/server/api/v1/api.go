@@ -8,6 +8,7 @@ import (
 
 	"github.com/AlexGustafsson/pewview/internal/transform"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // API is the base API
@@ -15,27 +16,36 @@ type API struct {
 	// MetricsConfiguration configures what should be kept on ingest
 	MetricsConfiguration *MetricsConfiguration
 
-	router *mux.Router
-	store  *transform.Store
+	store *transform.Store
+
+	servedBucketsCount prometheus.Counter
 }
 
 // NewAPI creates a new API context
-func NewAPI(router *mux.Router, store *transform.Store) *API {
+func NewAPI(store *transform.Store) *API {
 	api := &API{
 		MetricsConfiguration: &MetricsConfiguration{
 			IncludeBytes:              false,
 			IncludeSourceAddress:      false,
 			IncludeDestinationAddress: false,
 		},
+		store: store,
 
-		router: router,
-		store:  store,
+		servedBucketsCount: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "pewview",
+			Subsystem: "api_v1",
+			Name:      "served_buckets_count",
+		}),
 	}
 
-	router.HandleFunc("/buckets/latest", api.handleLatest)
-	router.HandleFunc("/buckets/{timestamp}", api.handleTimestamp)
-
 	return api
+}
+
+func (api *API) SetupRoutes(router *mux.Router) error {
+	subrouter := router.PathPrefix("/api/v1").Subrouter()
+	subrouter.HandleFunc("/buckets/latest", api.handleLatest)
+	subrouter.HandleFunc("/buckets/{timestamp}", api.handleTimestamp)
+	return nil
 }
 
 func (api *API) handleLatest(response http.ResponseWriter, request *http.Request) {
@@ -68,6 +78,17 @@ func (api *API) serveWindow(window *transform.CondensedWindow, response http.Res
 
 		response.Header().Set("Content-Type", "application/json")
 		response.WriteHeader(http.StatusOK)
-		json.NewEncoder(response).Encode(bucket)
+		err := json.NewEncoder(response).Encode(bucket)
+		if err == nil {
+			api.servedBucketsCount.Inc()
+		}
 	}
+}
+
+func (api *API) Collect(c chan<- prometheus.Metric) {
+	c <- api.servedBucketsCount
+}
+
+func (api *API) Describe(c chan<- *prometheus.Desc) {
+	c <- api.servedBucketsCount.Desc()
 }

@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	v1 "github.com/AlexGustafsson/pewview/internal/server/api/v1"
+	"github.com/AlexGustafsson/pewview/internal/server/api"
 	"github.com/AlexGustafsson/pewview/internal/transform"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
 
@@ -19,9 +20,9 @@ type Server struct {
 	WebAddress string
 	WebPort    int
 
-	MetricsConfiguration *v1.MetricsConfiguration
+	ExposeMetrics bool
 
-	Window float64
+	APIs []api.API
 
 	Log *zap.Logger
 }
@@ -32,13 +33,18 @@ func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 
 	router := mux.NewRouter()
 
-	// APIv1
-	api := v1.NewAPI(router.PathPrefix("/api/v1").Subrouter(), store)
-	api.MetricsConfiguration = server.MetricsConfiguration
+	for _, api := range server.APIs {
+		api.SetupRoutes(router)
+	}
 
 	// Static files
 	// TODO: Include as compiled FS
 	// router.PathPrefix("/").Handler(http.FileServer(http.Dir(server.WebRoot)))
+
+	// Metrics
+	if server.ExposeMetrics {
+		router.Handle("/metrics", promhttp.Handler())
+	}
 
 	httpServer := &http.Server{
 		Handler:      handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, router)),
