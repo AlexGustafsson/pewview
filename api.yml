@@ -10,6 +10,8 @@ paths:
   /buckets/latest:
     get:
       summary: Returns the latest bucket
+      tags:
+        - Bucket
       responses:
         '200':
           description: A bucket containing connections, summarized in a given window of time
@@ -21,6 +23,16 @@ paths:
   /buckets/{timestamp}:
     get:
       summary: Returns a bucket for a specific timestamp
+      tags:
+        - Bucket
+      parameters:
+        - in: path
+          name: timestamp
+          schema:
+            type: string
+            format: date-time
+          required: true
+          description: The timestamp for which a bucket should be retrieved
       responses:
         '200':
           description: A bucket containing connections, summarized in a given window of time
@@ -30,6 +42,10 @@ paths:
                 $ref: "#/components/schemas/Bucket"
         "404":
           $ref: "#/components/errors/404"
+
+tags:
+  - name: Bucket
+    description: Bucket operations
 
 components:
   schemas:
@@ -41,7 +57,8 @@ components:
         - connections
       properties:
         origin:
-          type: date-time
+          type: string
+          format: date-time
           description: The origin of the window
           example: "2021-01-30T08:30:00Z"
         duration:
@@ -65,6 +82,7 @@ components:
         origin:
           type: number
           description: The origin of the connection within the window as seconds from start
+          example: 13.7
         duration:
           type: number
           description: The duration of the connection in seconds
@@ -137,9 +155,3 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
-    "500":
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-          $ref: "#/components/schemas/ErrorResponse"
