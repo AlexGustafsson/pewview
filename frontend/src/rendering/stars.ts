@@ -5,7 +5,7 @@ import {
   Vector2
 } from "three"
 
-import STARS_FRAGMENT_SHADER from "./shaders/stars.frag";
+import STARS_FRAGMENT_SHADER from "./shaders/stars.frag?raw";
 
 export default class Stars {
   elapsedTime: number;

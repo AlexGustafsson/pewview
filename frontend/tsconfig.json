@@ -1,22 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "sourceMap": true,
+    "target": "ESNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "jsx": "react",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": false,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
-    "allowSyntheticDefaultImports": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true
+    "sourceMap": true
   },
   "include": [
-    "src/"
-  ],
-  "exclude": [
-    "**/*.spec.ts"
+    "src/**/*.ts",
+    "src/**/*.d.ts"
   ]
 }

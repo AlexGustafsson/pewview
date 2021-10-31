@@ -6,8 +6,8 @@ import {
   Vector3
 } from "three"
 
-import HALO_FRAGMENT_SHADER from "./shaders/halo.frag";
-import HALO_VERTEX_SHADER from "./shaders/halo.vert";
+import HALO_FRAGMENT_SHADER from "./shaders/halo.frag?raw";
+import HALO_VERTEX_SHADER from "./shaders/halo.vert?raw";
 import type Theme from "./theme";
 
 export default class Halo {

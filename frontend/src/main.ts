@@ -1,6 +1,4 @@
-import "./index.css"
-
-import type Renderer from "./rendering/renderer"
+import "./main.css"
 
 function waitForDocumentToLoad(): Promise<void> {
   if (document.readyState === "interactive" || document.readyState === "complete")

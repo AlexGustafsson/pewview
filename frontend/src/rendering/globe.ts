@@ -9,8 +9,8 @@ import {
 
 import type Theme from "./theme"
 
-import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag";
-import GLOBE_VERTEX_SHADER from "./shaders/globe.vert";
+import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag?raw";
+import GLOBE_VERTEX_SHADER from "./shaders/globe.vert?raw";
 
 type GlobeOptions = {
   radius: number,
@@ -129,7 +129,7 @@ export default class Globe {
     this.mesh.add(this.meshFill);
   }
 
-  updateSize(radius: number, scale: number) {    
+  updateSize(radius: number, scale: number) {
     this.radius = radius;
     const scaledRadius = this.radius * scale;
     this.shadowPoint = this.origin.clone().add(new Vector3(.7 * scaledRadius, .3 * -scaledRadius, scaledRadius));
