@@ -68,6 +68,6 @@ export class Slerp extends Easing {
   update(deltaTime: number) {
     super.update(deltaTime);
 
-    Quaternion.slerp(this.from, this.to, this.value, this.progress);
+    this.value.slerpQuaternions(this.from, this.to, this.progress);
   }
 }
