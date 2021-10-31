@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/AlexGustafsson/pewview/frontend"
 	"github.com/AlexGustafsson/pewview/internal/server/api"
 	"github.com/AlexGustafsson/pewview/internal/transform"
 	"github.com/gorilla/handlers"
@@ -45,6 +46,9 @@ func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 	if server.ExposeMetrics {
 		router.Handle("/metrics", promhttp.Handler())
 	}
+
+	frontend := frontend.NewFrontend()
+	router.PathPrefix("/").Handler(frontend)
 
 	httpServer := &http.Server{
 		Handler:      handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, router)),

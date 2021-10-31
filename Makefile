@@ -89,4 +89,4 @@ build/darwin_amd64.tar.gz: $(sources)
 
 # Clean all dynamically created files
 clean:
-	rm -rf ./build ./frontend/node_modules ./fronend/dist &> /dev/null || true
+	rm -rf ./build ./frontend/dist/index.html ./frontend/dist/assets &> /dev/null || true

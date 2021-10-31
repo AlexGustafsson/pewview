@@ -2,4 +2,6 @@
 /data
 .DS_Store
 node_modules
-frontend/dist
+frontend/dist/index.html
+frontend/dist/assets
+internal/
