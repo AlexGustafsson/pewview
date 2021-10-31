@@ -106,65 +106,65 @@ Usage:
   pewview [OPTIONS]
 
 Application Options:
-      --lookup-address=                        Print the location of the address and exit. May be used more than once
-      --consumer=[ipfix|netflow|sflow|webhook] Enable a consumer. May be used more than once
-      --geo=[geolite|ipgeolocation|ipapi|file] Enable a location provider. May be used more than once
+      --lookup-address=                               Print the location of the address and exit. May be used more than once
+      --consumer=[ipfix|netflow|sflow|webhook|random] Enable a consumer. May be used more than once
+      --geo=[geolite|ipgeolocation|ipapi|file]        Enable a location provider. May be used more than once
 
 Logging:
-      --log.level=[debug|info|warn|error]      Log level (default: info)
+      --log.level=[debug|info|warn|error]             Log level (default: info)
 
 IPFix Consumer:
-      --consumer.ipfix.address=                Listening address (default: <unset>)
-      --consumer.ipfix.port=                   Listening port (default: 2055)
-      --consumer.ipfix.workers=                Worker count (default: 1)
+      --consumer.ipfix.address=                       Listening address (default: <unset>)
+      --consumer.ipfix.port=                          Listening port (default: 2055)
+      --consumer.ipfix.workers=                       Worker count (default: 1)
 
 Netflow Consumer:
-      --consumer.netflow.address=              Listening address (default: <unset>)
-      --consumer.netflow.port=                 Listening port (default: 2056)
-      --consumer.netflow.workers=              Worker count (default: 1)
+      --consumer.netflow.address=                     Listening address (default: <unset>)
+      --consumer.netflow.port=                        Listening port (default: 2056)
+      --consumer.netflow.workers=                     Worker count (default: 1)
 
 SFlow Consumer:
-      --consumer.sflow.address=                Listening address (default: <unset>)
-      --consumer.sflow.port=                   Listening port (default: 6343)
-      --consumer.sflow.workers=                Worker count (default: 1)
+      --consumer.sflow.address=                       Listening address (default: <unset>)
+      --consumer.sflow.port=                          Listening port (default: 6343)
+      --consumer.sflow.workers=                       Worker count (default: 1)
 
 WebHook Consumer:
-      --consumer.webhook.address=              Listening address (default: <unset>)
-      --consumer.webhook.port=                 Listening port (default: 8081)
+      --consumer.webhook.address=                     Listening address (default: <unset>)
+      --consumer.webhook.port=                        Listening port (default: 8081)
 
 GeoLite Location Provider:
-      --geo.geolite.path=                      Path to GeoLite2-City.mmdb
+      --geo.geolite.path=                             Path to GeoLite2-City.mmdb
 
 ipgeolocation.io Location Provider:
-      --geo.ipgeolocation.key=                 API key [$PEWVIEW_IPGEOLOCATION_KEY]
+      --geo.ipgeolocation.key=                        API key [$PEWVIEW_IPGEOLOCATION_KEY]
 
 File-based Location Provider:
-      --geo.file.path=                         Path to JSON file containing patterns and locations
+      --geo.file.path=                                Path to JSON file containing patterns and locations
 
 Web:
-      --web.disable                            Disable the built-in web interface
-      --web.address=                           Listening address (default: <unset>)
-      --web.port=                              Listening port (default: 8080)
-      --web.origin=                            Origin to allow (default: *)
+      --web.disable                                   Disable the built-in web interface
+      --web.address=                                  Listening address (default: <unset>)
+      --web.port=                                     Listening port (default: 8080)
+      --web.origin=                                   Origin to allow (default: *)
 
 Pipeline:
-      --pipeline.queue=                        Length of the pipeline's message queue (default: 1024)
+      --pipeline.queue=                               Length of the pipeline's message queue (default: 1024)
 
 Metrics Tuning:
-      --metrics.window=                        Duration of a window (default: 1m)
+      --metrics.window=                               Duration of a window (default: 1m)
 
 Metrics to Expose:
-      --metrics.expose.bytes                   Expose number of bytes sent in a connection
-      --metrics.expose.source-address          Expose source address of a connection
-      --metrics.expose.source-port             Expose source port of a connection
-      --metrics.expose.destination-address     Expose destination address of a connection
-      --metrics.expose.destination-port        Expose destination port of a connection
+      --metrics.expose.bytes                          Expose number of bytes sent in a connection
+      --metrics.expose.source-address                 Expose source address of a connection
+      --metrics.expose.source-port                    Expose source port of a connection
+      --metrics.expose.destination-address            Expose destination address of a connection
+      --metrics.expose.destination-port               Expose destination port of a connection
 
 Prometheus:
-      --prometheus.enable                      Enable /metrics endpoint
+      --prometheus.enable                             Enable /metrics endpoint
 
 Help Options:
-  -h, --help                                   Show this help message
+  -h, --help                                          Show this help message
 ```
 
 ## IP Geolocation configuration
