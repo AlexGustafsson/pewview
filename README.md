@@ -136,7 +136,7 @@ GeoLite Location Provider:
       --geo.geolite.path=                      Path to GeoLite2-City.mmdb
 
 ipgeolocation.io Location Provider:
-      --geo.ipgeolocation.key=                 API key
+      --geo.ipgeolocation.key=                 API key [$PEWVIEW_IPGEOLOCATION_KEY]
 
 File-based Location Provider:
       --geo.file.path=                         Path to JSON file containing patterns and locations
@@ -145,6 +145,7 @@ Web:
       --web.disable                            Disable the built-in web interface
       --web.address=                           Listening address (default: <unset>)
       --web.port=                              Listening port (default: 8080)
+      --web.origin=                            Origin to allow (default: *)
 
 Pipeline:
       --pipeline.queue=                        Length of the pipeline's message queue (default: 1024)
