@@ -69,6 +69,7 @@ async function main() {
     console.log("Failed to fetch data, using fallback")
     bucket = await client.fetchFallback();
   }
+  console.log(`First data received after ${performance.now() - beforeLoad}ms`)
 }
 
 main();
