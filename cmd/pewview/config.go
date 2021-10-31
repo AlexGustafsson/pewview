@@ -20,7 +20,7 @@ type Config struct {
 
 	/// Consumers
 
-	EnabledConsumers []string `long:"consumer" description:"Enable a consumer. May be used more than once" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook"`
+	EnabledConsumers []string `long:"consumer" description:"Enable a consumer. May be used more than once" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook" choice:"random"`
 
 	IPFixConsumer struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
@@ -173,6 +173,11 @@ func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 
 	if config.ConsumerIsEnabled("webhook") {
 		consumer := consumer.NewWebHookConsumer(config.WebHookConsumer.Address, config.WebHookConsumer.Port, log)
+		consumers = append(consumers, consumer)
+	}
+
+	if config.ConsumerIsEnabled("random") {
+		consumer := consumer.NewRandomConsumer()
 		consumers = append(consumers, consumer)
 	}
 
