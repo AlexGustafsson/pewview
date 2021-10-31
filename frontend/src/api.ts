@@ -1,9 +1,9 @@
 export class Client {
-  public endpoint: string
+  public endpoint!: string
 
-  contructor(
-    public endpoint: string
-  ) {}
+  contructor(endpoint: string) {
+    this.endpoint = endpoint;
+  }
 
   public async fetchBuckets() {
     const request = await fetch(`${this.endpoint}/buckets/latest`)
