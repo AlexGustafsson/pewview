@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 )
 
@@ -58,7 +57,6 @@ func (provider *IPAPIProvider) Lookup(ip net.IP) (*Location, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Got message: %s", body)
 
 	record := IPAPIResponse{}
 	err = json.Unmarshal(body, &record)
