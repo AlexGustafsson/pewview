@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// IPGeolocationProvider is a database from ipgeolocation.io
+// IPGeolocationProvider is a provider using ipgeolocation.io
 type IPGeolocationProvider struct {
 	key string
 	log *zap.Logger
@@ -59,6 +59,7 @@ type IPGeolocationResponse struct {
 	}
 }
 
+// NewIPGeolocationProvider creates a new IPGeolocation provider
 func NewIPGeolocationProvider(key string, log *zap.Logger) *IPGeolocationProvider {
 	return &IPGeolocationProvider{
 		key: key,
@@ -66,7 +67,7 @@ func NewIPGeolocationProvider(key string, log *zap.Logger) *IPGeolocationProvide
 	}
 }
 
-// Lookup performs an IP lookup
+// Lookup implements LocationProvider
 func (provider *IPGeolocationProvider) Lookup(ip net.IP) (*Location, error) {
 	client := http.Client{
 		Timeout: time.Second * 2,

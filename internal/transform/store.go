@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Store is a store containing windows
 type Store struct {
 	windows map[float64]*CondensedWindow
 	start   time.Time
@@ -19,6 +20,9 @@ type Store struct {
 	storedWindowsCounter prometheus.Counter
 }
 
+// NewStore creates a new store. The start time represents the start time at which
+// the store and pipeline was started. The window is the duration of each window
+// processed by the pipeline and pushed to the store
 func NewStore(start time.Time, window time.Duration, log *zap.Logger) *Store {
 	return &Store{
 		windows: make(map[float64]*CondensedWindow),
@@ -35,6 +39,7 @@ func NewStore(start time.Time, window time.Duration, log *zap.Logger) *Store {
 	}
 }
 
+// Load consumes messages from the store's input channel. Blocks until the context is canceled
 func (store *Store) Load(ctx context.Context) {
 	for {
 		select {
@@ -49,14 +54,18 @@ func (store *Store) Load(ctx context.Context) {
 	}
 }
 
+// Input returns the input channel the store subscribes to. Provide it to a pipeline to allow the store
+// to store processed windows
 func (store *Store) Input() chan *CondensedWindow {
 	return store.in
 }
 
+// LatestWindow returns the latest window
 func (store *Store) LatestWindow() *CondensedWindow {
 	return store.Window(time.Now().UTC())
 }
 
+// Window returns a window containing the specified time. Returns nil if not found
 func (store *Store) Window(time time.Time) *CondensedWindow {
 	index := math.Floor(time.UTC().Sub(store.start).Seconds() / store.window)
 	store.log.Debug("Retrieving window from store", zap.Time("time", time), zap.Float64("index", index))
@@ -68,10 +77,12 @@ func (store *Store) Window(time time.Time) *CondensedWindow {
 	return nil
 }
 
+// Collect implements prometheus.Collector
 func (store *Store) Collect(c chan<- prometheus.Metric) {
 	c <- store.storedWindowsCounter
 }
 
+// Describe implements prometheus.Collector
 func (store *Store) Describe(c chan<- *prometheus.Desc) {
 	c <- store.storedWindowsCounter.Desc()
 }

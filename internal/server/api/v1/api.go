@@ -41,6 +41,7 @@ func NewAPI(store *transform.Store) *API {
 	return api
 }
 
+// SetupRoutes implements API
 func (api *API) SetupRoutes(router *mux.Router) error {
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 	subrouter.HandleFunc("/buckets/latest", api.handleLatest)
@@ -85,10 +86,12 @@ func (api *API) serveWindow(window *transform.CondensedWindow, response http.Res
 	}
 }
 
+// Collect implements prometheus.Collector
 func (api *API) Collect(c chan<- prometheus.Metric) {
 	c <- api.servedBucketsCount
 }
 
+// Describe implements prometheus.Collector
 func (api *API) Describe(c chan<- *prometheus.Desc) {
 	c <- api.servedBucketsCount.Desc()
 }

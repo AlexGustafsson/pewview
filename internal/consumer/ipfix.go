@@ -5,10 +5,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// IPFixConsumer is a consumer of IPFix / Netflow v9 messages
 type IPFixConsumer struct {
 	BaseGoFlowConsumer
 }
 
+// NewIPFixConsumer creates a new IPFix consumer
 func NewIPFixConsumer(address string, port int, workers int, log *zap.Logger) *IPFixConsumer {
 	consumer := &IPFixConsumer{
 		BaseGoFlowConsumer: BaseGoFlowConsumer{

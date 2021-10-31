@@ -7,12 +7,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// GeoLiteProvider is a database from MaxMind
+// GeoLiteProvider is a provider using MaxMind's services
 type GeoLiteProvider struct {
 	database *maxminddb.Reader
 	log      *zap.Logger
 }
 
+// NewGeoLiteProvider creates a new GeoLite provider
 func NewGeoLiteProvider(path string, log *zap.Logger) (*GeoLiteProvider, error) {
 	database, err := maxminddb.Open(path)
 	if err != nil {
@@ -39,7 +40,7 @@ func unwrap(values map[string]string, key string) string {
 	return value
 }
 
-// Lookup performs an IP lookup
+// Lookup implements LocationProvider
 func (provider *GeoLiteProvider) Lookup(ip net.IP) (*Location, error) {
 	var record struct {
 		City struct {

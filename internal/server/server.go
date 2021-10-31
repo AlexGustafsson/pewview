@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Server is the core PewView server
+// Server exposes APIs, metrics and the frontend
 type Server struct {
 	WebAddress string
 	WebPort    int
@@ -29,7 +29,7 @@ type Server struct {
 	Log *zap.Logger
 }
 
-// Start the server using the configured values
+// Start the server
 func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 	server.Log.Info("Starting PewView")
 

@@ -5,10 +5,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// SFlowConsumer is a consumer of SFlow messages
 type SFlowConsumer struct {
 	BaseGoFlowConsumer
 }
 
+// NewSFlowConsumer creates a new SFlow consumer
 func NewSFlowConsumer(address string, port int, workers int, log *zap.Logger) *SFlowConsumer {
 	consumer := &SFlowConsumer{
 		BaseGoFlowConsumer: BaseGoFlowConsumer{

@@ -10,8 +10,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// arg:"-v,--verbose" help:"verbosity level"`
-
+// Config represents the application's configuration
 type Config struct {
 	Log LogConfig `group:"Logging" namespace:"log"`
 
@@ -96,15 +95,18 @@ type Config struct {
 	} `group:"Prometheus" namespace:"prometheus"`
 }
 
+// Version returns the version string of the application
 func (Config) Version() string {
 	return version.FullVersion()
 }
 
+// LogConfig represents configurable values for logging
 type LogConfig struct {
 	LevelName string        `long:"level" description:"Log level" choice:"debug" choice:"info" choice:"warn" choice:"error" default:"info"`
 	Level     zapcore.Level `arg:"-"`
 }
 
+// Validate validates the config
 func (c *Config) Validate() error {
 	if err := c.Log.Validate(); err != nil {
 		return err
@@ -113,6 +115,7 @@ func (c *Config) Validate() error {
 	return nil
 }
 
+// Validate validates the config
 func (c *LogConfig) Validate() error {
 	switch c.LevelName {
 	case "debug":
@@ -128,6 +131,7 @@ func (c *LogConfig) Validate() error {
 	return nil
 }
 
+// LocationProviderIsEnabled returns true if the named consumer is enabled
 func (c *Config) ConsumerIsEnabled(name string) bool {
 	for _, other := range c.EnabledConsumers {
 		if name == other {
@@ -137,6 +141,7 @@ func (c *Config) ConsumerIsEnabled(name string) bool {
 	return false
 }
 
+// LocationProviderIsEnabled returns true if the named location provider is enabled
 func (c *Config) LocationProviderIsEnabled(name string) bool {
 	for _, other := range c.EnabledLocationProviders {
 		if name == other {
@@ -146,6 +151,7 @@ func (c *Config) LocationProviderIsEnabled(name string) bool {
 	return false
 }
 
+// Consumers returns the configured consumers
 func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 	var consumers []consumer.Consumer
 
@@ -165,13 +171,14 @@ func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 	}
 
 	if config.ConsumerIsEnabled("webhook") {
-		consumer := consumer.NewWebhookConsumer(config.WebHook.Address, config.WebHook.Port, log)
+		consumer := consumer.NewWebHookConsumer(config.WebHook.Address, config.WebHook.Port, log)
 		consumers = append(consumers, consumer)
 	}
 
 	return consumers, nil
 }
 
+// LocationProviders returns the configured location provider instances
 func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet, error) {
 	var providers []location.Provider
 

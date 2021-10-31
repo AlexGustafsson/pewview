@@ -13,26 +13,30 @@
 </p>
 
 # PewView
-### A self-hosted network visualization on a 3D globe with support for IPFIX, Netflow, sFlow and more
+### A self-hosted network visualization on a 3D globe with support for IPFIX, NetFlow, sFlow and more
 
-Note: PewView is currently being actively developed. Until it reaches v1.0.0 breaking changes may occur in minor versions.
+⚠️ PewView is currently being actively developed. Until it reaches v1.0.0 breaking changes may occur in minor versions.
+
+PewView is a self-hosted network visualization tool. It listens for incoming network traffic flow in the commonly used [IPFix (NetFlow v9)](https://en.wikipedia.org/wiki/IP_Flow_Information_Export), [NetFlow v5](https://en.wikipedia.org/wiki/NetFlow) and [sFlow](https://en.wikipedia.org/wiki/SFlow) formats, as well as a simple HTTP-based API endpoint. The traffic data is condensed, anonymized and enriched by adding location data to the observed network connections. The network traffic is then exported in a simple API. A web-based frontend then uses the API to visualize the network traffic in realtime on a 3D globe, shown in the picture above.
 
 ## Quickstart
 <a name="quickstart"></a>
 
 The service comes in two parts, an optional frontend and a high-throughput server based on [Cloudflare's goflow](https://github.com/cloudflare/goflow).
 
-Whilst the two are intended to be used together, one may provide a custom frontend or chose to deactivate it completely in order to use PewView as a high-throughput consumer of IPFIX, NetFlow and sFlow.
+Whilst the two are intended to be used together, one may chose to deactivate the frontend in order to use PewView as a high-throughput consumer of IPFIX, NetFlow, sFlow and more.
 
-First, download [the latest release](https://github.com/AlexGustafsson/pewview/releases) for your architecture, the frontend and unpack them.
+First, download [the latest release](https://github.com/AlexGustafsson/pewview/releases) for your architecture.
 
-You'll also need a GeoIP service to enable PewView to resolve IP addresses to locations. For instructions on setting some of them up, see [IP Geolocation configuration](#geoip).
+You'll also need a GeoIP service to enable PewView to resolve IP addresses to locations. For instructions on setting some of them up, see [IP Geolocation configuration](#geoip). A free service without config values is used in the example below.
 
-The service can then be started like so:
+The service can now be started like so:
 
 ```shell
 pewview --consumer=netflow --location-provider=ipapi
 ```
+
+PewView is incredibly configurable, please refer to the documentation below for instructions on how to use other conumers and location providers.
 
 ## Table of contents
 
@@ -47,8 +51,9 @@ pewview --consumer=netflow --location-provider=ipapi
 
 * Intuitive web interface with a 3D visualization
 * High performance and scalable consumer
-* Supports NetFlow v5, Netflow v9 / IPFIX and sFlow
+* Supports NetFlow v5, Netflow v9 / IPFIX, sFlow and more
 * Stateless and usable via a single Docker container
+* Supports many location providers, offline, online, free and paid
 
 <a id="installation"></a>
 ## Installation

@@ -17,6 +17,7 @@ type Bucket struct {
 	Connections []*Connection `json:"connections"`
 }
 
+// BucketFromWindow creates a bucket from a condensed window
 func BucketFromWindow(window *transform.CondensedWindow) *Bucket {
 	connections := make([]*Connection, len(window.Connections))
 

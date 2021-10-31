@@ -5,10 +5,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// NetFlowConsumer is a consumer of NetFlow v5 messages
 type NetFlowConsumer struct {
 	BaseGoFlowConsumer
 }
 
+// NewNetFlowConsumer creates a new NetFlow consumer
 func NewNetFlowConsumer(address string, port int, workers int, log *zap.Logger) *NetFlowConsumer {
 	consumer := &NetFlowConsumer{
 		BaseGoFlowConsumer: BaseGoFlowConsumer{

@@ -7,19 +7,21 @@ import (
 	"go.uber.org/zap"
 )
 
-type GoFlowState interface {
+type goFlowState interface {
 	FlowRoutine(workers int, addr string, port int, reuseport bool) error
 }
 
+// BaseGoFlowConsumer provides a common interface for goflow's consumers
 type BaseGoFlowConsumer struct {
 	address  string
 	port     int
 	workers  int
 	messages chan *Message
-	state    GoFlowState
+	state    goFlowState
 	log      *zap.Logger
 }
 
+// Publish implements goflow Publish
 func (consumer *BaseGoFlowConsumer) Publish(messages []*flowmessage.FlowMessage) {
 	for _, message := range messages {
 		consumer.messages <- &Message{
@@ -32,6 +34,7 @@ func (consumer *BaseGoFlowConsumer) Publish(messages []*flowmessage.FlowMessage)
 	}
 }
 
+// Listen implements Consumer
 func (consumer *BaseGoFlowConsumer) Listen(messages chan *Message) error {
 	consumer.log.Info("Listening", zap.String("address", consumer.address), zap.Int("port", consumer.port), zap.Int("workers", consumer.workers))
 	consumer.messages = messages

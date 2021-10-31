@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Pipeline transforms consumed consumer.Messages and publishes CondensedWindows of connections
 type Pipeline struct {
 	entry             consumer.Consumer
 	locationProviders *location.ProviderSet
@@ -22,6 +23,7 @@ type Pipeline struct {
 	publishedWindowsCounter  prometheus.Counter
 }
 
+// NewPipeline creates a new pipeline using the supplied entry as the source of messages
 func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSet, queueSize int, window time.Duration, log *zap.Logger) *Pipeline {
 	return &Pipeline{
 		entry:             entry,
@@ -48,6 +50,7 @@ func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSe
 	}
 }
 
+// Start starts processing messages in the pipeline. CondensedWindows are published to the output channel
 func (pipeline *Pipeline) Start(ctx context.Context, out chan *CondensedWindow) error {
 	go pipeline.entry.Listen(pipeline.messages)
 
@@ -76,11 +79,13 @@ func (pipeline *Pipeline) publish(window *Window, out chan *CondensedWindow) {
 	pipeline.publishedMessagesCounter.Add(float64(len(condensed.Connections)))
 }
 
+// Collect implements prometheus.Collector
 func (pipeline *Pipeline) Collect(c chan<- prometheus.Metric) {
 	c <- pipeline.processedMessagesCounter
 	c <- pipeline.publishedWindowsCounter
 }
 
+// Describe implements prometheus.Collector
 func (pipeline *Pipeline) Describe(c chan<- *prometheus.Desc) {
 	c <- pipeline.processedMessagesCounter.Desc()
 	c <- pipeline.publishedWindowsCounter.Desc()

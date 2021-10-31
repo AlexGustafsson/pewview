@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// IPAPIProvider is a database from ip-api.com
+// IPAPIProvider is a provider using ip-api.com
 type IPAPIProvider struct {
 	log *zap.Logger
 }
@@ -34,13 +34,14 @@ type IPAPIResponse struct {
 	ASN          string  `json:"as"`
 }
 
+// NewIPAPIProvider creates a new IPAPI provider
 func NewIPAPIProvider(log *zap.Logger) *IPAPIProvider {
 	return &IPAPIProvider{
 		log: log.With(zap.String("provider", "ipapi")),
 	}
 }
 
-// Lookup performs an IP lookup
+// Lookup implements LocationProvider
 func (provider *IPAPIProvider) Lookup(ip net.IP) (*Location, error) {
 	client := http.Client{
 		Timeout: time.Second * 2,

@@ -5,6 +5,7 @@ import (
 )
 
 var (
+	// ErrNotFound is returned if the location could not be found
 	ErrNotFound = errors.New("no location found")
 )
 

@@ -6,21 +6,25 @@ import (
 	"go.uber.org/zap"
 )
 
-// Provider is an interface for looking up IP addresses
+// Provider is an interface for looking up the location of IP addresses
 type Provider interface {
 	// Lookup performs an IP lookup
 	Lookup(ip net.IP) (*Location, error)
 }
 
+// ProviderSet represents a set of Providers
 type ProviderSet struct {
+	// Providers is a list of Providers to use, in the order they are used
 	Providers []Provider
 	log       *zap.Logger
 }
 
+// NewProviderSet creates a new ProviderSet
 func NewProviderSet(providers []Provider, log *zap.Logger) *ProviderSet {
 	return &ProviderSet{providers, log}
 }
 
+// Lookup implements Provider
 func (set ProviderSet) Lookup(address net.IP) (*Location, error) {
 	for _, provider := range set.Providers {
 		location, err := provider.Lookup(address)

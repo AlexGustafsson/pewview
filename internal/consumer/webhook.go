@@ -9,26 +9,26 @@ import (
 	"go.uber.org/zap"
 )
 
-type WebhookConsumer struct {
+// WebHookConsumer is a consumer of HTTP messages. It listens for POSTs containing
+// a JSON-encoded Message
+type WebHookConsumer struct {
 	address  string
 	port     int
 	log      *zap.Logger
 	messages chan *Message
 }
 
-func NewWebhookConsumer(address string, port int, log *zap.Logger) *WebhookConsumer {
-	return &WebhookConsumer{
+// NewWebHookConsumer creates a new WebHook consumer
+func NewWebHookConsumer(address string, port int, log *zap.Logger) *WebHookConsumer {
+	return &WebHookConsumer{
 		address: address,
 		port:    port,
 		log:     log,
 	}
 }
 
-func (consumer *WebhookConsumer) Messages() chan *Message {
-	return consumer.messages
-}
-
-func (consumer *WebhookConsumer) Listen(messages chan *Message) error {
+// Listen implements consumer
+func (consumer *WebHookConsumer) Listen(messages chan *Message) error {
 	consumer.log.Info("Listening", zap.String("address", consumer.address), zap.Int("port", consumer.port))
 	consumer.messages = messages
 	server := &http.Server{
@@ -41,7 +41,8 @@ func (consumer *WebhookConsumer) Listen(messages chan *Message) error {
 	return server.ListenAndServe()
 }
 
-func (consumer *WebhookConsumer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+// ServeHTTP handles incoming HTTP requests
+func (consumer *WebHookConsumer) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		consumer.log.Debug("Received request using a bad method")
 		response.WriteHeader(http.StatusMethodNotAllowed)

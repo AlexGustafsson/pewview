@@ -9,11 +9,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// FileProvider provides the location based on a rule file. The file contains
+// a map of regular expressions mapped to the resulting location
 type FileProvider struct {
 	patterns map[*regexp.Regexp]*Location
 	log      *zap.Logger
 }
 
+// NewFileProvider creates a new file provider
 func NewFileProvider(path string, log *zap.Logger) (*FileProvider, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -42,6 +45,7 @@ func NewFileProvider(path string, log *zap.Logger) (*FileProvider, error) {
 	}, nil
 }
 
+// Lookup implements LocationProvider
 func (provider *FileProvider) Lookup(ip net.IP) (*Location, error) {
 	address := ip.String()
 
