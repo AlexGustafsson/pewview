@@ -17,3 +17,14 @@ declare module "*.png" {
   const content: any;
   export default content;
 }
+
+interface ImportMeta {
+  env: {
+    VITE_API_ENDPOINT: string;
+    BASE_URL: string;
+    MODE: string;
+    DEV: boolean;
+    PROD: boolean;
+    SSR: boolean;
+  };
+}
