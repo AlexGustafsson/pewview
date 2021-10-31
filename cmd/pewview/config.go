@@ -22,44 +22,44 @@ type Config struct {
 
 	EnabledConsumers []string `long:"consumer" description:"Enable a consumer. May be used more than once" choice:"ipfix" choice:"netflow" choice:"sflow" choice:"webhook"`
 
-	IPFix struct {
+	IPFixConsumer struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"2055"`
 		Workers int    `long:"workers" description:"Worker count" default:"1"`
-	} `group:"IPFix Consumer" namespace:"ipfix"`
+	} `group:"IPFix Consumer" namespace:"consumer.ipfix"`
 
-	NetFlow struct {
+	NetFlowConsumer struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"2056"`
 		Workers int    `long:"workers" description:"Worker count" default:"1"`
-	} `group:"Netflow Consumer" namespace:"netflow"`
+	} `group:"Netflow Consumer" namespace:"consumer.netflow"`
 
-	SFlow struct {
+	SFlowConsumer struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"6343"`
 		Workers int    `long:"workers" description:"Worker count" default:"1"`
-	} `group:"SFlow Consumer" namespace:"sflow"`
+	} `group:"SFlow Consumer" namespace:"consumer.sflow"`
 
-	WebHook struct {
+	WebHookConsumer struct {
 		Address string `long:"address" description:"Listening address" default-mask:"<unset>"`
 		Port    int    `long:"port" description:"Listening port" default:"8081"`
-	}
+	} `group:"WebHook Consumer" namespace:"consumer.webhook"`
 
 	/// Location providers
 
-	EnabledLocationProviders []string `long:"location-provider" description:"Enable a location provider. May be used more than once" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
+	EnabledLocationProviders []string `long:"geo" description:"Enable a location provider. May be used more than once" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
 
-	GeoLite struct {
+	GeoLiteLocationProvider struct {
 		Path string `long:"path" description:"Path to GeoLite2-City.mmdb"`
-	} `group:"GeoLite Location Provider" namespace:"geolite"`
+	} `group:"GeoLite Location Provider" namespace:"geo.geolite"`
 
-	IPGeolocation struct {
+	IPGeolocationLocationProvider struct {
 		Key string `long:"key" description:"API key"`
-	} `group:"ipgeolocation.io Location Provider" namespace:"ipgeolocation"`
+	} `group:"ipgeolocation.io Location Provider" namespace:"geo.ipgeolocation"`
 
-	File struct {
+	FileLocationProvider struct {
 		Path string `long:"path" description:"Path to JSON file containing patterns and locations"`
-	} `group:"file Location Provider" namespace:"file"`
+	} `group:"File-based Location Provider" namespace:"geo.file"`
 
 	/// Web
 
@@ -73,7 +73,7 @@ type Config struct {
 
 	Pipeline struct {
 		QueueSize int `long:"queue" description:"Length of the pipeline's message queue" default:"1024"`
-	}
+	} `group:"Pipeline" namespace:"pipeline"`
 
 	/// Metrics
 
@@ -156,22 +156,22 @@ func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 	var consumers []consumer.Consumer
 
 	if config.ConsumerIsEnabled("ipfix") {
-		consumer := consumer.NewIPFixConsumer(config.IPFix.Address, config.IPFix.Port, config.IPFix.Workers, log)
+		consumer := consumer.NewIPFixConsumer(config.IPFixConsumer.Address, config.IPFixConsumer.Port, config.IPFixConsumer.Workers, log)
 		consumers = append(consumers, consumer)
 	}
 
 	if config.ConsumerIsEnabled("netflow") {
-		consumer := consumer.NewNetFlowConsumer(config.NetFlow.Address, config.NetFlow.Port, config.NetFlow.Workers, log)
+		consumer := consumer.NewNetFlowConsumer(config.NetFlowConsumer.Address, config.NetFlowConsumer.Port, config.NetFlowConsumer.Workers, log)
 		consumers = append(consumers, consumer)
 	}
 
 	if config.ConsumerIsEnabled("sflow") {
-		consumer := consumer.NewSFlowConsumer(config.SFlow.Address, config.SFlow.Port, config.SFlow.Workers, log)
+		consumer := consumer.NewSFlowConsumer(config.SFlowConsumer.Address, config.SFlowConsumer.Port, config.SFlowConsumer.Workers, log)
 		consumers = append(consumers, consumer)
 	}
 
 	if config.ConsumerIsEnabled("webhook") {
-		consumer := consumer.NewWebHookConsumer(config.WebHook.Address, config.WebHook.Port, log)
+		consumer := consumer.NewWebHookConsumer(config.WebHookConsumer.Address, config.WebHookConsumer.Port, log)
 		consumers = append(consumers, consumer)
 	}
 
@@ -183,7 +183,7 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 	var providers []location.Provider
 
 	if config.LocationProviderIsEnabled("geolite") {
-		provider, err := location.NewGeoLiteProvider(config.GeoLite.Path, log)
+		provider, err := location.NewGeoLiteProvider(config.GeoLiteLocationProvider.Path, log)
 		if err != nil {
 			return nil, err
 		}
@@ -191,7 +191,7 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 	}
 
 	if config.LocationProviderIsEnabled("ipgeolocation") {
-		provider := location.NewIPGeolocationProvider(config.IPGeolocation.Key, log)
+		provider := location.NewIPGeolocationProvider(config.IPGeolocationLocationProvider.Key, log)
 		providers = append(providers, provider)
 	}
 
@@ -201,7 +201,7 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 	}
 
 	if config.LocationProviderIsEnabled("file") {
-		provider, err := location.NewFileProvider(config.File.Path, log)
+		provider, err := location.NewFileProvider(config.FileLocationProvider.Path, log)
 		if err != nil {
 			return nil, err
 		}
