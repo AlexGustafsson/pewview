@@ -136,12 +136,12 @@ file Location Provider:
       --file.path=                                           Path to JSON file containing patterns and locations
 
 Web:
-      --web.enable                                           Enable the built-in web interface
+      --web.disable                                          Disable the built-in web interface
       --web.address=                                         Listening address (default: <unset>)
       --web.port=                                            Listening port (default: 8080)
 
 Metrics Tuning:
-      --metrics.window=                                      Number of seconds to summarize in a block (default: 60)
+      --metrics.window=                                      Duration of a window (default: 1m)
 
 Metrics to Expose:
       --metrics.expose.bytes                                 Expose number of bytes sent in a connection
@@ -149,6 +149,9 @@ Metrics to Expose:
       --metrics.expose.source-port                           Expose source port of a connection
       --metrics.expose.destination-address                   Expose destination address of a connection
       --metrics.expose.destination-port                      Expose destination port of a connection
+
+Prometheus:
+      --prometheus.enable                                    Enable /metrics endpoint
 
 Help Options:
   -h, --help                                                 Show this help message
