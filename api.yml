@@ -1,0 +1,145 @@
+openapi: 3.0.0
+info:
+  title: PewView API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+
+paths:
+  /buckets/latest:
+    get:
+      summary: Returns the latest bucket
+      responses:
+        '200':
+          description: A bucket containing connections, summarized in a given window of time
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bucket"
+
+  /buckets/{timestamp}:
+    get:
+      summary: Returns a bucket for a specific timestamp
+      responses:
+        '200':
+          description: A bucket containing connections, summarized in a given window of time
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bucket"
+        "404":
+          $ref: "#/components/errors/404"
+
+components:
+  schemas:
+    Bucket:
+      type: object
+      required:
+        - origin
+        - duration
+        - connections
+      properties:
+        origin:
+          type: date-time
+          description: The origin of the window
+          example: "2021-01-30T08:30:00Z"
+        duration:
+          type: number
+          description: The duration of the window in seconds
+          example: 30
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/Connection"
+
+    Connection:
+      type: object
+      required:
+        - origin
+        - duration
+        - source
+        - destination
+        - metrics
+      properties:
+        origin:
+          type: number
+          description: The origin of the connection within the window as seconds from start
+        duration:
+          type: number
+          description: The duration of the connection in seconds
+          example: 2.5
+        source:
+          $ref: "#/components/schemas/Coordinate"
+        destination:
+          $ref: "#/components/schemas/Coordinate"
+        metrics:
+          $ref: "#/components/schemas/Metrics"
+
+    Coordinate:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          description: The latitude of the coordinate
+          example: 59.334591
+        longitude:
+          type: number
+          description: The longitude of the coordinate
+          example: 18.063240
+
+    Metrics:
+      type: object
+      properties:
+        sourceAddress:
+          type: string
+          description: Source IP address
+          example: 192.168.1.1
+        sourcePort:
+          type: number
+          description: Source port
+          example: 80
+        destinationAddress:
+          type: string
+          description: Destination IP address
+          example: ::ffff:c0a8:101
+        destinationPort:
+          type: number
+          description: Destination port
+          example: 8080
+        bytes:
+          type: number
+          description: The number of bytes sent in the connection
+          example: 3378032
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: bucket not found
+        code:
+          type: number
+          description: HTTP status code
+          example: 404
+
+  errors:
+    "404":
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    "500":
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+          $ref: "#/components/schemas/ErrorResponse"

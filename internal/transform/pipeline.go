@@ -12,14 +12,16 @@ import (
 type Pipeline struct {
 	entry             consumer.Consumer
 	locationProviders *location.ProviderSet
+	window            time.Duration
 	messages          chan *consumer.Message
 	log               *zap.Logger
 }
 
-func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSet, queueSize int, log *zap.Logger) *Pipeline {
+func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSet, queueSize int, window time.Duration, log *zap.Logger) *Pipeline {
 	return &Pipeline{
 		entry:             entry,
 		locationProviders: locationProviders,
+		window:            window,
 		messages:          make(chan *consumer.Message, queueSize),
 		log:               log,
 	}
@@ -28,8 +30,8 @@ func NewPipeline(entry consumer.Consumer, locationProviders *location.ProviderSe
 func (pipeline *Pipeline) Start(ctx context.Context, out chan *CondensedWindow) error {
 	go pipeline.entry.Listen(pipeline.messages)
 
-	window := NewWindow(5 * time.Second)
-	ticker := time.NewTicker(5 * time.Second)
+	window := NewWindow(pipeline.window)
+	ticker := time.NewTicker(pipeline.window)
 
 	for {
 		select {
@@ -37,7 +39,7 @@ func (pipeline *Pipeline) Start(ctx context.Context, out chan *CondensedWindow) 
 			window.Add(message)
 		case <-ticker.C:
 			oldWindow := window
-			window = NewWindow(5 * time.Second)
+			window = NewWindow(pipeline.window)
 			go pipeline.publish(oldWindow, out)
 		case <-ctx.Done():
 			return nil

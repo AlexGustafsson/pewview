@@ -9,12 +9,12 @@ import (
 
 // Bucket is a data representation for a slice of data at single a point in time
 type Bucket struct {
-	// Origin is the UNIX time when the bucket was first created
-	Origin int64
+	// Origin is the UNIX time when the bucket was first created, the UTC timestamp formatted according to RFC3339 / ISO8601
+	Origin string `json:"origin"`
 	// Duration of the bucket in seconds
-	Duration float64
+	Duration float64 `json:"duration"`
 	// Connections made in the window of the bucket
-	Connections []*Connection
+	Connections []*Connection `json:"connections"`
 }
 
 func BucketFromWindow(window *transform.CondensedWindow) *Bucket {
@@ -22,10 +22,10 @@ func BucketFromWindow(window *transform.CondensedWindow) *Bucket {
 
 	for i, connection := range window.Connections {
 		connections[i] = &Connection{
-			VisibleOrigin:   connection.Start.Seconds(),
-			VisibleDuration: connection.Duration().Seconds(),
-			Source:          NewCoordinate(connection.SourceLocation.Latitude, connection.SourceLocation.Longitude),
-			Destination:     NewCoordinate(connection.DestinationLocation.Latitude, connection.DestinationLocation.Longitude),
+			Origin:      connection.Start.Seconds(),
+			Duration:    connection.Duration().Seconds(),
+			Source:      NewCoordinate(connection.SourceLocation.Latitude, connection.SourceLocation.Longitude),
+			Destination: NewCoordinate(connection.DestinationLocation.Latitude, connection.DestinationLocation.Longitude),
 			Metrics: &Metrics{
 				Bytes:              connection.Bytes,
 				SourceAddress:      connection.SourceAddress,
@@ -37,7 +37,7 @@ func BucketFromWindow(window *transform.CondensedWindow) *Bucket {
 	}
 
 	bucket := &Bucket{
-		Origin:      window.Start.Unix(),
+		Origin:      window.Start.UTC().Format(time.RFC3339),
 		Duration:    window.Duration().Seconds(),
 		Connections: connections,
 	}
@@ -48,38 +48,38 @@ func BucketFromWindow(window *transform.CondensedWindow) *Bucket {
 // Connection is one or more connections made between a set of addresses
 // and ports under some time
 type Connection struct {
-	// Visible origin within the bucket the connection occured
-	VisibleOrigin float64
-	// Visible duration of the connection in seconds
-	VisibleDuration float64
+	// Origin within the bucket the connection occured
+	Origin float64 `json:"origin"`
+	// Duration of the connection in seconds
+	Duration float64 `json:"duration"`
 	// Source coordinate
-	Source *Coordinate
+	Source *Coordinate `json:"source"`
 	// Destination coordinate
-	Destination *Coordinate
+	Destination *Coordinate `json:"destination"`
 	// Metrics
-	Metrics *Metrics
+	Metrics *Metrics `json:"metrics"`
 }
 
 // Coordinate is a geographical coordinate
 type Coordinate struct {
 	// Latitude of the coordinate
-	Latitude float64
+	Latitude float64 `json:"latitude"`
 	// Longitude of the coordinate
-	Longitude float64
+	Longitude float64 `json:"longitude"`
 }
 
 // Metrics is in-depth data that may be configured to hide sensitive data
 type Metrics struct {
 	// Bytes sent
-	Bytes uint64 `json:",omitempty"`
+	Bytes uint64 `json:"bytes,omitempty"`
 	// Source Address of the connection
-	SourceAddress net.IP `json:",omitempty"`
+	SourceAddress net.IP `json:"sourceAddress,omitempty"`
 	// Source Port of the connection
-	SourcePort int `json:",omitempty"`
+	SourcePort int `json:"sourcePort,omitempty"`
 	// Destination Address of the connection
-	DestinationAddress net.IP `json:",omitempty"`
+	DestinationAddress net.IP `json:"destinationAddress,omitempty"`
 	// Destination Port of the connection
-	DestinationPort int `json:",omitempty"`
+	DestinationPort int `json:"destinationPort,omitempty"`
 }
 
 // MetricsConfiguration configures what to include in connections' metrics
@@ -89,15 +89,6 @@ type MetricsConfiguration struct {
 	IncludeSourcePort         bool
 	IncludeDestinationAddress bool
 	IncludeDestinationPort    bool
-}
-
-// NewBucket creates a new bucket
-func NewBucket(origin time.Time, duration time.Duration) *Bucket {
-	return &Bucket{
-		Origin:      origin.Unix(),
-		Duration:    duration.Seconds(),
-		Connections: make([]*Connection, 0),
-	}
 }
 
 // AddConnection adds a connection to the bucket

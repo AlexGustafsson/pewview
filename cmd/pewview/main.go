@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
@@ -92,13 +93,13 @@ func main() {
 
 	errGroup, ctx := errgroup.WithContext(context.Background())
 
-	store := transform.NewStore()
+	store := transform.NewStore(time.Now(), config.Metrics.Window, log)
 	errGroup.Go(func() error {
 		store.Load(ctx)
 		return nil
 	})
 
-	pipeline := transform.NewPipeline(aggregator, locationProviders, config.Pipeline.QueueSize, log)
+	pipeline := transform.NewPipeline(aggregator, locationProviders, config.Pipeline.QueueSize, config.Metrics.Window, log)
 	errGroup.Go(func() error {
 		return pipeline.Start(ctx, store.Input())
 	})

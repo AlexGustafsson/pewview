@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/AlexGustafsson/pewview/internal/consumer"
 	"github.com/AlexGustafsson/pewview/internal/location"
 	"github.com/AlexGustafsson/pewview/internal/version"
@@ -77,7 +79,7 @@ type Config struct {
 	/// Metrics
 
 	Metrics struct {
-		Window float64 `long:"window" description:"Number of seconds to summarize in a block" default:"60"`
+		Window time.Duration `long:"window" description:"Duration of a window" default:"1m"`
 		Expose struct {
 			Bytes              bool `long:"bytes" description:"Expose number of bytes sent in a connection"`
 			SourceAddress      bool `long:"source-address" description:"Expose source address of a connection"`
