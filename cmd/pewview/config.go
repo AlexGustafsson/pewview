@@ -54,8 +54,8 @@ type Config struct {
 	} `group:"GeoLite Location Provider" namespace:"geo.geolite"`
 
 	IPGeolocationLocationProvider struct {
-		Key string `long:"key" description:"API key"`
-	} `group:"ipgeolocation.io Location Provider" namespace:"geo.ipgeolocation"`
+		Key string `long:"key" description:"API key" env:"KEY"`
+	} `group:"ipgeolocation.io Location Provider" namespace:"geo.ipgeolocation" env-namespace:"PEWVIEW_IPGEOLOCATION"`
 
 	FileLocationProvider struct {
 		Path string `long:"path" description:"Path to JSON file containing patterns and locations"`

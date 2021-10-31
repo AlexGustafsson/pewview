@@ -190,7 +190,7 @@ The [ipgeolocation.io](https://ipgeolocation.io) service has a free tier offerin
 1. Create an account on [https://ipgeolocation.io](https://ipgeolocation.io)
 2. Log in to get your API key
 
-Specify `--location-provider=ipgeolocation --ipgeolocation.key=<key>` when starting PewView.
+Specify `--location-provider=ipgeolocation --ipgeolocation.key=<key>` when starting PewView. The key can also be set in the `PEWVIEW_IPGEOLOCATION_KEY` environment variable.
 
 ### ip-api.com (free, online)
 
