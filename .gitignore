@@ -4,4 +4,3 @@
 node_modules
 frontend/dist/index.html
 frontend/dist/assets
-internal/
