@@ -21,7 +21,8 @@ type Server struct {
 	WebAddress string
 	WebPort    int
 
-	ExposeMetrics bool
+	ExposeMetrics  bool
+	EnableFrontend bool
 
 	APIs []api.API
 
@@ -47,8 +48,9 @@ func (server *Server) Start(ctx context.Context, store *transform.Store) error {
 		router.Handle("/metrics", promhttp.Handler())
 	}
 
-	frontend := frontend.NewFrontend()
-	router.PathPrefix("/").Handler(frontend)
+	if server.EnableFrontend {
+		router.PathPrefix("/").Handler(frontend.NewFrontend())
+	}
 
 	httpServer := &http.Server{
 		Handler:      handlers.CompressHandler(handlers.CombinedLoggingHandler(os.Stdout, router)),

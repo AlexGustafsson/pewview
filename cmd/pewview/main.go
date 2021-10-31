@@ -105,11 +105,12 @@ func main() {
 	prometheus.DefaultRegisterer.MustRegister(apiv1)
 
 	server := &server.Server{
-		WebAddress:    config.Web.Address,
-		WebPort:       config.Web.Port,
-		APIs:          []api.API{apiv1},
-		ExposeMetrics: config.Prometheus.Enable,
-		Log:           log,
+		WebAddress:     config.Web.Address,
+		WebPort:        config.Web.Port,
+		APIs:           []api.API{apiv1},
+		ExposeMetrics:  config.Prometheus.Enable,
+		EnableFrontend: !config.Web.Disable,
+		Log:            log,
 	}
 	errGroup.Go(func() error {
 		return server.Start(ctx, store)
