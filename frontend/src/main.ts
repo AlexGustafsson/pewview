@@ -52,8 +52,7 @@ async function main() {
   renderer.start();
   const loadingOverlay = document.getElementById("loading-overlay");
   if (loadingOverlay !== null) {
-    loadingOverlay.style.opacity = "0";
-    loadingOverlay.style.transform = "scale(1.5)";
+    loadingOverlay.classList.add("hidden")
   }
 
   // Fetch data

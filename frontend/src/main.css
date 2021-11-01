@@ -19,7 +19,7 @@ html, body {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(5px);
-  transition: 0.5s all;
+  transition: 0.5s opacity;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -32,4 +32,13 @@ html, body {
   font-size: 72px;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, “Roboto”, “Droid Sans”, “Helvetica Neue”, Helvetica, Arial, sans-serif;
+  transition: 0.5s transform;
+}
+
+#loading-overlay.hidden {
+  opacity: 0;
+}
+
+#loading-overlay.hidden > h1 {
+  transform: scale(1.5)
 }
