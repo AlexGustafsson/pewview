@@ -15,7 +15,7 @@ import Stars from "./stars"
 
 import EventEmitter from "../event-emitter"
 import { Scene } from "./scene"
-import controls, { events as controlEvents } from "./controls";
+import { events as controlEvents } from "./controls";
 
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
