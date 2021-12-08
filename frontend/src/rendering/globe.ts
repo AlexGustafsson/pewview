@@ -11,6 +11,7 @@ import type Theme from "./theme"
 
 import GLOBE_FRAGMENT_SHADER from "./shaders/globe.frag?raw";
 import GLOBE_VERTEX_SHADER from "./shaders/globe.vert?raw";
+import { Entity } from "./entity";
 
 type GlobeOptions = {
   radius: number,
@@ -19,7 +20,7 @@ type GlobeOptions = {
   origin: Vector3
 };
 
-export default class Globe {
+export default class Globe implements Entity {
   private radius: number;
   private origin: Vector3;
 
@@ -97,7 +98,7 @@ export default class Globe {
       }
     }
     this.material.onBeforeCompile = (shader, _renderer) => {
-      this.uniforms = {...shader.uniforms, ...this.uniforms};
+      this.uniforms = { ...shader.uniforms, ...this.uniforms };
       shader.uniforms = this.uniforms;
       shader.fragmentShader = GLOBE_FRAGMENT_SHADER;
       shader.vertexShader = GLOBE_VERTEX_SHADER;
@@ -115,7 +116,7 @@ export default class Globe {
       REFLECTIVITY: false,
       USE_TANGENT: false,
       PHYSICAL: false,
-    	CLEARCOAT: false,
+      CLEARCOAT: false,
       USE_MAP: false,
       IS_FILL: false,
       USE_INSTANCING: false,
@@ -158,5 +159,13 @@ export default class Globe {
 
   setHighlightDist(value: number) {
     this.uniforms.highlightDist.value = value;
+  }
+
+  update(deltaTime: number) {
+
+  }
+
+  mount(group: Group) {
+    group.add(this.mesh);
   }
 }

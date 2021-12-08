@@ -1,0 +1,179 @@
+import {
+  Group,
+  Scene as ThreeScene,
+  TextureLoader,
+  AmbientLight,
+  DirectionalLight,
+  SpotLight,
+  PerspectiveCamera,
+  Vector3,
+} from "three";
+import { Entity } from "./entity";
+import { IS_MOBILE } from "./utils"
+
+import Controller from "./controller"
+import Stars from "./stars"
+import Earth from "./earth"
+
+import WORLD_MAP from "../../static/map.png"
+
+import { START_ROTATION } from "./globals"
+import Theme from "./theme";
+import Halo from "./halo";
+import Globe from "./globe";
+import WorldMap from "./world-map";
+
+const GLOBE_RADIUS = 25;
+const WORLD_MAP_OFFSET = 0;
+
+type ResolveFunction = (value: void | PromiseLike<void>) => void;
+
+export class Scene extends ThreeScene {
+  globeContainer: Group;
+  staticContainer: Group;
+
+  inputController: Controller | null = null;
+
+  camera: PerspectiveCamera;
+
+  lights: {
+    diffuse: AmbientLight,
+    crest: DirectionalLight,
+    atmosphere: SpotLight,
+    spotlight: SpotLight
+  };
+
+  stars: Stars | null = null;
+  globe: Globe | null = null;
+  halo: Halo | null = null;
+  worldMap: WorldMap | null = null;
+
+
+  constructor() {
+    super();
+
+    const radius = GLOBE_RADIUS;
+
+    this.globeContainer = new Group();
+    this.add(this.globeContainer);
+
+    this.staticContainer = new Group();
+    this.add(this.staticContainer);
+
+    const theme = new Theme();
+
+    // Camera
+    this.camera = new PerspectiveCamera(10, 1, 170, 260);
+    this.camera.position.set(0, 0, 220);
+    this.add(this.camera);
+
+
+    this.globe = new Globe({
+      radius: radius,
+      detail: 55,
+      theme,
+      origin: new Vector3(0, 0, 0),
+    });
+    this.globe.mount(this.globeContainer);
+
+    // Setup lights
+    this.lights = {
+      diffuse: new AmbientLight(0xa9bfff, 0.8),
+      crest: new DirectionalLight(0xa9bfff, 3),
+      atmosphere: new SpotLight(0x2188ff, 5, 120, .3, 0, 1.1),
+      spotlight: new SpotLight(0xf46bbe, 5, 75, .5, 0, 1.25)
+    };
+    this.lights.crest.target = this.globeContainer;
+    this.lights.atmosphere.target = this.globeContainer;
+    this.lights.spotlight.target = this.globeContainer;
+    for (const light of Object.values(this.lights))
+      this.staticContainer.add(light);
+
+    // const rotation = START_ROTATION;
+    // const offset = (new Date()).getTimezoneOffset();
+    // rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
+    this.globeContainer.rotation.copy(START_ROTATION);
+
+    // Setup stars
+    this.stars = new Stars(GLOBE_RADIUS);
+    this.stars.mesh.position.set(0, 0, -20);
+    this.stars.mount(this.staticContainer);
+    this.stars.animate = true;
+
+    this.halo = new Halo(radius, theme);
+    this.halo.mount(this.staticContainer);
+
+    // Setup input controller (done when first mounted)
+    this.inputController = null;
+
+    // Always let the update loop access 'this'
+    this.update = this.update.bind(this);
+  }
+
+  async init() {
+    const radius = GLOBE_RADIUS;
+
+    // Setup the world map
+    const textureLoaded = new Promise<void>(resolve => {
+      new TextureLoader().load(WORLD_MAP, texture => {
+        this.worldMap = new WorldMap({
+          radius,
+          texture,
+          rows: 200,
+          size: 0.095
+        });
+        this.worldMap.mount(this.globeContainer);
+        resolve();
+      });
+    });
+
+    await textureLoaded;
+  }
+
+  updateSize(width: number, height: number) {
+
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    const containerScale = 800 / height;
+    if (!IS_MOBILE) {
+      this.globeContainer.scale.set(containerScale, containerScale, containerScale);
+      this.staticContainer.scale.set(containerScale, containerScale, containerScale);
+    }
+
+    this.globeContainer.position.set(0, 0, 0);
+    this.staticContainer.position.set(0, 0, 0);
+
+    this.globe!.updateSize(GLOBE_RADIUS, containerScale);
+    this.worldMap!.updateSize(GLOBE_RADIUS);
+    this.halo!.updateSize(GLOBE_RADIUS);
+
+    this.lights.atmosphere.position.set(-2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale * 2);
+    this.lights.atmosphere.distance = 120 * containerScale;
+
+    // this.spotLights.light1.position.set(this.orbitParentContainer.position.x - 2.5 * GLOBE_RADIUS, 80, -49).multiplyScalar(containerScale);
+    // this.spotLights.light1.distance = 120 * containerScale;
+
+    this.lights.crest.position.set(-50, 30, 10).multiplyScalar(containerScale * 2);
+    // this.directionalLights.light2.position.set(this.orbitParentContainer.position.x - 50, this.orbitParentContainer.position.y + 30, 10).multiplyScalar(containerScale);
+
+    // where's light3? previously light2
+    // this.lights.light3.position.set(this.parentContainer.position.x - 25, 0, 100).multiplyScalar(containerScale)
+    // this.light3.distance = 150 * containerScale
+
+    this.lights.spotlight.position.set(GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale * 2);
+    this.lights.spotlight.distance = 75 * containerScale;
+    // this.spotLights.light4.position.set(this.orbitParentContainer.position.x + GLOBE_RADIUS, GLOBE_RADIUS, 2 * GLOBE_RADIUS).multiplyScalar(containerScale);
+    // this.spotLights.light4.distance = 75 * containerScale;
+  }
+
+  update(deltaTime: number) {
+    if (this.inputController)
+      this.inputController.update(deltaTime);
+    // if (this.debugUI)
+    //   this.debugUI.update(deltaTime);
+    if (this.stars)
+      this.stars.update(deltaTime);
+    if (this.globe)
+      this.globe.update(deltaTime);
+  }
+}

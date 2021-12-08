@@ -1,4 +1,4 @@
-import {GUI} from "dat.gui"
+import { GUI } from "dat.gui"
 // import WorldMap from "./world-map"
 
 // import type {
@@ -27,7 +27,7 @@ type DatGUIOptions = {
   //   rows: number,
   //   size: number
   // },
-  lights: {[key: string]: boolean}
+  lights: { [key: string]: boolean }
 };
 
 type DebugUIOptions = {
@@ -40,7 +40,7 @@ export default class DebugUI {
   elapsedTime: number;
   options: DatGUIOptions;
 
-  constructor({renderer}: DebugUIOptions) {
+  constructor({ renderer }: DebugUIOptions) {
     this.gui = new GUI();
     this.renderer = renderer;
 
@@ -51,9 +51,9 @@ export default class DebugUI {
         fps: 0,
         drawTime: 0,
         // animateHalo: renderer.halo !== null && renderer.halo.animate,
-        animateStars: renderer.stars !== null && renderer.stars.animate,
+        animateStars: true,
         // enableHalo: renderer.halo !== null,
-        enableStars: renderer.stars !== null,
+        enableStars: true,
         toggle() {
           if (renderer.isRunning)
             renderer.stop();
@@ -140,17 +140,17 @@ export default class DebugUI {
     // if (this.options.rendering.animateHalo !== haloAnimationEnabled && this.options.rendering.enableHalo)
     //   this.renderer.enableHalo(this.options.rendering.animateHalo);
 
-    const starsEnabled = this.renderer.stars !== null;
-    if (this.options.rendering.enableStars !== starsEnabled) {
-      if (this.options.rendering.enableStars)
-        this.renderer.enableStars(this.options.rendering.animateStars);
-      else
-        this.renderer.disableStars();
-    }
+    // const starsEnabled = this.renderer.stars !== null;
+    // if (this.options.rendering.enableStars !== starsEnabled) {
+    //   if (this.options.rendering.enableStars)
+    //     this.renderer.enableStars(this.options.rendering.animateStars);
+    //   else
+    //     this.renderer.disableStars();
+    // }
 
-    const starsAnimationEnabled = this.renderer.stars && this.renderer.stars.animate;
-    if (this.options.rendering.animateStars !== starsAnimationEnabled && this.options.rendering.enableStars)
-      this.renderer.enableStars(this.options.rendering.animateStars);
+    // const starsAnimationEnabled = this.renderer.stars && this.renderer.stars.animate;
+    // if (this.options.rendering.animateStars !== starsAnimationEnabled && this.options.rendering.enableStars)
+    //   this.renderer.enableStars(this.options.rendering.animateStars);
 
     // let lightsChanged = false;
     // for (const [light, visible] of Object.entries(this.options.lights)) {

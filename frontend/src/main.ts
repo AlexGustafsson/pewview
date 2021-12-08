@@ -1,7 +1,7 @@
 import "./main.css"
 
 import Client from "./api"
-import type {Bucket} from "./api"
+import type { Bucket } from "./api"
 
 function waitForDocumentToLoad(): Promise<void> {
   if (document.readyState === "interactive" || document.readyState === "complete")
@@ -18,7 +18,7 @@ async function main() {
 
   const beforeLoad = performance.now();
   const Renderer = (await import("./rendering/renderer")).default;
-  const {supportsWebGL} = await import("./rendering/utils");
+  const { supportsWebGL } = await import("./rendering/utils");
   console.log(`Application files loaded in ${performance.now() - beforeLoad}ms`);
 
   if (!supportsWebGL())
@@ -33,19 +33,10 @@ async function main() {
   const renderer = new Renderer({
     debug: true,
   });
-  const rendererLoaded = new Promise<void>(resolve => {
-    renderer.once("load", () => {
-      resolve();
-    });
-  });
-  renderer.mount(container);
+  await renderer.mount(container);
 
   // Render one frame to kick start all processes
   renderer.update();
-  console.log(`Renderer created and mounted in ${performance.now() - beforeRender}ms`);
-
-  // Wait for the renderer to be completely loaded
-  await rendererLoaded;
   console.log(`Application is now up and running after ${performance.now() - beforeLoad}ms`);
 
   // Start the renderer

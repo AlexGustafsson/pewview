@@ -3,14 +3,16 @@ import {
   SphereBufferGeometry,
   ShaderMaterial,
   Color,
-  Vector3
+  Vector3,
+  Group
 } from "three"
+import { Entity } from "./entity";
 
 import HALO_FRAGMENT_SHADER from "./shaders/halo.frag?raw";
 import HALO_VERTEX_SHADER from "./shaders/halo.vert?raw";
 import type Theme from "./theme";
 
-export default class Halo {
+export default class Halo implements Entity {
   elapsedTime: number;
   animate: boolean;
   uniforms: {
@@ -83,5 +85,9 @@ export default class Halo {
       this.elapsedTime = (this.elapsedTime + deltaTime) % 1e3;
       this.uniforms.noiseSeed.value = this.elapsedTime / 2;
     }
+  }
+
+  mount(group: Group) {
+    group.add(this.mesh);
   }
 }

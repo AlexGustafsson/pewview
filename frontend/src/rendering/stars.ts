@@ -1,13 +1,15 @@
 import {
+  Group,
   Mesh,
   PlaneGeometry,
   ShaderMaterial,
   Vector2
 } from "three"
+import { Entity } from "./entity";
 
 import STARS_FRAGMENT_SHADER from "./shaders/stars.frag?raw";
 
-export default class Stars {
+export default class Stars implements Entity {
   elapsedTime: number;
   animate: boolean;
   uniforms: {
@@ -65,5 +67,9 @@ export default class Stars {
       this.elapsedTime = this.elapsedTime + deltaTime;
       this.uniforms.noiseSeed.value = this.elapsedTime / 2;
     }
+  }
+
+  mount(group: Group) {
+    group.add(this.mesh);
   }
 }

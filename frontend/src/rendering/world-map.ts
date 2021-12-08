@@ -2,14 +2,16 @@ import {
   Object3D,
   CircleBufferGeometry,
   MeshStandardMaterial,
-  InstancedMesh
+  InstancedMesh,
+  Group
 } from "three"
 
 import type {
   Texture
 } from "three"
 
-import {getImageData, coordinatesToPoint, radiansToDegrees} from "./utils"
+import { getImageData, coordinatesToPoint, radiansToDegrees } from "./utils"
+import { Entity } from "./entity";
 
 const CIRCLE_DETAIL = 5;
 
@@ -20,14 +22,14 @@ type WorldMapOptions = {
   size: number
 };
 
-export default class WorldMap {
+export default class WorldMap implements Entity {
   radius: number;
   texture: Texture;
   rows: number;
   size: number;
   mesh: InstancedMesh;
 
-  constructor({radius, texture, rows, size}: WorldMapOptions) {
+  constructor({ radius, texture, rows, size }: WorldMapOptions) {
     this.radius = radius;
     this.texture = texture;
     this.rows = rows;
@@ -62,13 +64,7 @@ export default class WorldMap {
       transparent: true,
       alphaTest: .02
     });
-    // This doesn't seem to have an effect
-    // material.onBeforeCompile = texture => {
-    //   texture.fragmentShader = texture.fragmentShader.replace(
-    //     "gl_FragColor = vec4( outgoingLight, diffuseColor.a );",
-    //     "\n        gl_FragColor = vec4( outgoingLight, diffuseColor.a );\n        if (gl_FragCoord.z > 0.51) {\n          gl_FragColor.a = 1.0 + ( 0.51 - gl_FragCoord.z ) * 17.0;\n        }\n      "
-    //   );
-    // };
+
     this.mesh = new InstancedMesh(geometry, material, uniforms.length);
     for (let i = 0; i < uniforms.length; i++)
       this.mesh.setMatrixAt(i, uniforms[i]);
@@ -86,5 +82,13 @@ export default class WorldMap {
 
   updateSize(radius: number) {
     // todo
+  }
+
+  update(deltaTime: number) {
+
+  }
+
+  mount(group: Group) {
+    group.add(this.mesh);
   }
 }
