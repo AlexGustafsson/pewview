@@ -23,6 +23,8 @@ export default class Stars implements Entity {
   geometry: PlaneGeometry;
   mesh: Mesh;
 
+  private parent: Group | null = null;
+
   constructor(radius: number) {
     this.elapsedTime = 0;
     this.animate = true;
@@ -70,6 +72,11 @@ export default class Stars implements Entity {
   }
 
   mount(group: Group) {
-    group.add(this.mesh);
+    this.parent = group;
+    this.parent.add(this.mesh);
+  }
+
+  unmount() {
+    this.parent!.remove(this.mesh);
   }
 }

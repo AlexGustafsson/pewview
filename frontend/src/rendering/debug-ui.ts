@@ -1,4 +1,6 @@
 import { GUI } from "dat.gui"
+import controls from "./controls";
+
 // import WorldMap from "./world-map"
 
 // import type {
@@ -13,80 +15,37 @@ import type Renderer from "./renderer"
 // such as the FPS
 const UPDATE_DEBOUNCE = 0.2;
 
-type DatGUIOptions = {
-  rendering: {
-    fps: number,
-    drawTime: number,
-    // animateHalo: boolean,
-    animateStars: boolean,
-    // enableHalo: boolean,
-    enableStars: boolean,
-    toggle: () => void
-  },
-  // worldMap: {
-  //   rows: number,
-  //   size: number
-  // },
-  lights: { [key: string]: boolean }
-};
-
-type DebugUIOptions = {
-  renderer: Renderer
-};
-
 export default class DebugUI {
   gui: GUI;
-  renderer: Renderer;
   elapsedTime: number;
-  options: DatGUIOptions;
 
-  constructor({ renderer }: DebugUIOptions) {
+  constructor() {
     this.gui = new GUI();
-    this.renderer = renderer;
 
     this.elapsedTime = 0;
-
-    this.options = {
-      rendering: {
-        fps: 0,
-        drawTime: 0,
-        // animateHalo: renderer.halo !== null && renderer.halo.animate,
-        animateStars: true,
-        // enableHalo: renderer.halo !== null,
-        enableStars: true,
-        toggle() {
-          if (renderer.isRunning)
-            renderer.stop();
-          else
-            renderer.start();
-        }
-      },
-      // worldMap: {
-      //   rows: renderer.worldMap?.rows || 0,
-      //   size: renderer.worldMap?.size || 0,
-      // },
-      lights: {}
-    };
 
     // for (const light of renderer.lights)
     //   this.options.lights[Object.values(this.options.lights).length.toString()] = light.visible;
 
     const renderingFolder = this.gui.addFolder("Rendering");
 
-    const fps = renderingFolder.add(this.options.rendering, "fps").name("FPS").listen();
-    fps.domElement.style.pointerEvents = "none";
+    // const fps = renderingFolder.add(this.options.rendering, "fps").name("FPS").listen();
+    // fps.domElement.style.pointerEvents = "none";
 
-    const drawTime = renderingFolder.add(this.options.rendering, "drawTime").step(0.001).name("Draw Time").listen();
-    drawTime.domElement.style.pointerEvents = "none";
+    // const drawTime = renderingFolder.add(this.options.rendering, "drawTime").step(0.001).name("Draw Time").listen();
+    // drawTime.domElement.style.pointerEvents = "none";
 
-    // renderingFolder.add(this.options.rendering, "animateHalo").name("Animate Halo");
-    renderingFolder.add(this.options.rendering, "animateStars").name("Animate Stars");
-    // renderingFolder.add(this.options.rendering, "enableHalo").name("Enable Halo");
-    renderingFolder.add(this.options.rendering, "enableStars").name("Enable Stars");
-
-    renderingFolder.add(this.options.rendering, "toggle").name("Toggle Rendering");
-
+    renderingFolder.add(controls.rendering, "enable").name("Toggle Rendering");
     renderingFolder.open();
+
+    const sceneFolder = this.gui.addFolder("Scene");
+    sceneFolder.add(controls.scene, "renderGlobe").name("Enable Globe");
+    sceneFolder.add(controls.scene, "renderWorldMap").name("Enable World Map");
+    sceneFolder.add(controls.scene, "renderHalo").name("Enable Halo");
+    sceneFolder.add(controls.scene, "renderStars").name("Enable Stars");
+    sceneFolder.add(controls.scene, "animateHalo").name("Animate Halo");
+    sceneFolder.add(controls.scene, "animateStars").name("Animate Stars");
+    sceneFolder.open();
 
     // const worldMapFolder = this.gui.addFolder("World Map");
     // worldMapFolder.add(this.options.worldMap, "rows", 0, 400).step(5).name("Rows");
@@ -100,7 +59,7 @@ export default class DebugUI {
   }
 
   debouncedUpdate(deltaTime: number, _elapsedTime: number) {
-    this.options.rendering.fps = this.renderer.fps;
+    // this.options.rendering.fps = this.renderer.fps;
     this.options.rendering.drawTime = deltaTime;
 
     // if (this.renderer.worldMap !== null) {

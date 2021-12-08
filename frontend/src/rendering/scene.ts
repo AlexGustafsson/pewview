@@ -13,7 +13,6 @@ import { IS_MOBILE } from "./utils"
 
 import Controller from "./controller"
 import Stars from "./stars"
-import Earth from "./earth"
 
 import WORLD_MAP from "../../static/map.png"
 
@@ -22,6 +21,7 @@ import Theme from "./theme";
 import Halo from "./halo";
 import Globe from "./globe";
 import WorldMap from "./world-map";
+import { events as controlEvents } from "./controls";
 
 const GLOBE_RADIUS = 25;
 const WORLD_MAP_OFFSET = 0;
@@ -128,6 +128,23 @@ export class Scene extends ThreeScene {
     });
 
     await textureLoaded;
+
+    controlEvents.on("change", (path: string, value: any) => {
+      switch (path) {
+        case "scene.renderHalo":
+          if (value === true) this.halo?.mount(this.staticContainer); else this.halo?.unmount(); break;
+        case "scene.renderStars":
+          if (value === true) this.stars?.mount(this.staticContainer); else this.stars?.unmount(); break;
+        case "scene.animateHalo":
+          this.halo!.animate = value as boolean; break;
+        case "scene.animateStars":
+          this.stars!.animate = value as boolean; break;
+        case "scene.renderWorldMap":
+          if (value === true) this.worldMap?.mount(this.globeContainer); else this.worldMap?.unmount(); break;
+        case "scene.renderGlobe":
+          if (value === true) this.globe?.mount(this.globeContainer); else this.globe?.unmount(); break;
+      }
+    });
   }
 
   updateSize(width: number, height: number) {
@@ -175,5 +192,7 @@ export class Scene extends ThreeScene {
       this.stars.update(deltaTime);
     if (this.globe)
       this.globe.update(deltaTime);
+    if (this.halo)
+      this.halo.update(deltaTime);
   }
 }

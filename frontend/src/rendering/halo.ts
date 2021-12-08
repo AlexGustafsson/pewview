@@ -27,6 +27,8 @@ export default class Halo implements Entity {
   material: ShaderMaterial;
   mesh: Mesh;
 
+  private parent: Group | null = null;
+
   constructor(radius: number, theme: Theme) {
     this.elapsedTime = 0;
     this.animate = true;
@@ -88,6 +90,11 @@ export default class Halo implements Entity {
   }
 
   mount(group: Group) {
-    group.add(this.mesh);
+    this.parent = group;
+    this.parent.add(this.mesh);
+  }
+
+  unmount() {
+    this.parent!.remove(this.mesh);
   }
 }

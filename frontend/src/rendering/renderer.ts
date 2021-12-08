@@ -15,6 +15,7 @@ import Stars from "./stars"
 
 import EventEmitter from "../event-emitter"
 import { Scene } from "./scene"
+import controls, { events as controlEvents } from "./controls";
 
 // The number of milliseconds to wait before triggering a size update.
 // Only the last event within this timespan will be handled
@@ -37,6 +38,7 @@ export default class Renderer extends EventEmitter {
   fps: number;
   scene: Scene;
   renderer: WebGLRenderer;
+  render: boolean = true;
 
 
   resizeDebouncer: ReturnType<typeof setInterval> | null;
@@ -48,6 +50,14 @@ export default class Renderer extends EventEmitter {
   }: RendererOptions = {}) {
     super();
     this.element = null;
+
+    controlEvents.on("change", (path: string, value: any) => {
+      switch (path) {
+        case "rendering.enable":
+          this.render = value as boolean;
+          break;
+      }
+    });
 
     // Style
     this.theme = theme
@@ -162,6 +172,9 @@ export default class Renderer extends EventEmitter {
   update() {
     const deltaTime = this.clock.getDelta();
     this.fps = 1 / deltaTime;
+
+    if (!this.render)
+      return;
 
     this.renderer.render(this.scene, this.scene.camera);
     this.scene.update(deltaTime);

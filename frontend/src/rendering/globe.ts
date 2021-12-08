@@ -32,6 +32,8 @@ export default class Globe implements Entity {
 
   private frontPoint: Vector3;
 
+  private parent: Group | null = null;
+
   material: MeshStandardMaterial;
   uniforms: {
     shadowDist: Uniform<number>,
@@ -166,6 +168,11 @@ export default class Globe implements Entity {
   }
 
   mount(group: Group) {
-    group.add(this.mesh);
+    this.parent = group;
+    this.parent.add(this.mesh);
+  }
+
+  unmount() {
+    this.parent!.remove(this.mesh);
   }
 }

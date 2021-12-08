@@ -29,6 +29,8 @@ export default class WorldMap implements Entity {
   size: number;
   mesh: InstancedMesh;
 
+  private parent: Group | null = null;
+
   constructor({ radius, texture, rows, size }: WorldMapOptions) {
     this.radius = radius;
     this.texture = texture;
@@ -89,6 +91,11 @@ export default class WorldMap implements Entity {
   }
 
   mount(group: Group) {
-    group.add(this.mesh);
+    this.parent = group;
+    this.parent.add(this.mesh);
+  }
+
+  unmount() {
+    this.parent!.remove(this.mesh);
   }
 }
