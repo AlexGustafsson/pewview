@@ -11,11 +11,12 @@ import (
 
 // Store is a store containing windows
 type Store struct {
-	windows map[float64]*CondensedWindow
-	start   time.Time
-	window  float64
-	in      chan *CondensedWindow
-	log     *zap.Logger
+	windows   map[float64]*CondensedWindow
+	start     time.Time
+	lastIndex float64
+	window    float64
+	in        chan *CondensedWindow
+	log       *zap.Logger
 
 	storedWindowsCounter prometheus.Counter
 }
@@ -44,9 +45,10 @@ func (store *Store) Load(ctx context.Context) {
 	for {
 		select {
 		case input := <-store.in:
-			index := math.Floor(input.Start.UTC().Sub(store.start).Seconds() / store.window)
+			index := store.Index(input.Start.UTC())
 			store.log.Debug("Adding window to store", zap.Time("start", input.Start), zap.Float64("index", index), zap.Int("connections", len(input.Connections)))
 			store.windows[index] = input
+			store.lastIndex = index
 			store.storedWindowsCounter.Inc()
 		case <-ctx.Done():
 			return
@@ -60,15 +62,25 @@ func (store *Store) Input() chan *CondensedWindow {
 	return store.in
 }
 
-// LatestWindow returns the latest window
+// LatestWindow returns the latest window. Nil if none is available
 func (store *Store) LatestWindow() *CondensedWindow {
-	return store.Window(time.Now().UTC())
+	return store.WindowByIndex(store.lastIndex)
+}
+
+// Index returns an index containing the specified time.
+func (store *Store) Index(time time.Time) float64 {
+	return math.Floor(time.UTC().Sub(store.start).Seconds() / store.window)
 }
 
 // Window returns a window containing the specified time. Returns nil if not found
 func (store *Store) Window(time time.Time) *CondensedWindow {
-	index := math.Floor(time.UTC().Sub(store.start).Seconds() / store.window)
-	store.log.Debug("Retrieving window from store", zap.Time("time", time), zap.Float64("index", index))
+	index := store.Index(time)
+	return store.WindowByIndex(index)
+}
+
+// WindowByIndex returns a window by its index. Returns nil if not found
+func (store *Store) WindowByIndex(index float64) *CondensedWindow {
+	store.log.Debug("Retrieving window from store", zap.Float64("index", index))
 	window, ok := store.windows[index-1]
 	if ok {
 		return window
