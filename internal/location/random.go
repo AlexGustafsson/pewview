@@ -16,7 +16,7 @@ func NewRandomProvider() *RandomProvider {
 // Lookup implements LocationProvider
 func (provider *RandomProvider) Lookup(ip net.IP) (*Location, error) {
 	latitude := rand.Float64()*180 - 90
-	longitude := rand.Float64()*80 - 180
+	longitude := rand.Float64()*360 - 180
 
 	return &Location{
 		Latitude:  latitude,

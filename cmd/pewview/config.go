@@ -159,26 +159,31 @@ func (config *Config) Consumers(log *zap.Logger) ([]consumer.Consumer, error) {
 	if config.ConsumerIsEnabled("ipfix") {
 		consumer := consumer.NewIPFixConsumer(config.IPFixConsumer.Address, config.IPFixConsumer.Port, config.IPFixConsumer.Workers, log)
 		consumers = append(consumers, consumer)
+		log.Info("Configured ipfix consumer", zap.String("address", config.IPFixConsumer.Address), zap.Int("port", config.IPFixConsumer.Port), zap.Int("workers", config.IPFixConsumer.Workers))
 	}
 
 	if config.ConsumerIsEnabled("netflow") {
 		consumer := consumer.NewNetFlowConsumer(config.NetFlowConsumer.Address, config.NetFlowConsumer.Port, config.NetFlowConsumer.Workers, log)
 		consumers = append(consumers, consumer)
+		log.Info("Configured netflow consumer", zap.String("address", config.NetFlowConsumer.Address), zap.Int("port", config.NetFlowConsumer.Port), zap.Int("workers", config.NetFlowConsumer.Workers))
 	}
 
 	if config.ConsumerIsEnabled("sflow") {
 		consumer := consumer.NewSFlowConsumer(config.SFlowConsumer.Address, config.SFlowConsumer.Port, config.SFlowConsumer.Workers, log)
 		consumers = append(consumers, consumer)
+		log.Info("Configured sflow consumer", zap.String("address", config.SFlowConsumer.Address), zap.Int("port", config.SFlowConsumer.Port), zap.Int("workers", config.SFlowConsumer.Workers))
 	}
 
 	if config.ConsumerIsEnabled("webhook") {
 		consumer := consumer.NewWebHookConsumer(config.WebHookConsumer.Address, config.WebHookConsumer.Port, log)
 		consumers = append(consumers, consumer)
+		log.Info("Configured webhook consumer", zap.String("address", config.WebHookConsumer.Address), zap.Int("port", config.WebHookConsumer.Port))
 	}
 
 	if config.ConsumerIsEnabled("random") {
 		consumer := consumer.NewRandomConsumer()
 		consumers = append(consumers, consumer)
+		log.Info("Configured random consumer")
 	}
 
 	return consumers, nil
@@ -194,16 +199,19 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 			return nil, err
 		}
 		providers = append(providers, provider)
+		log.Info("Configured geolite location provider", zap.String("path", config.GeoLiteLocationProvider.Path))
 	}
 
 	if config.LocationProviderIsEnabled("ipgeolocation") {
 		provider := location.NewIPGeolocationProvider(config.IPGeolocationLocationProvider.Key, log)
 		providers = append(providers, provider)
+		log.Info("Configured ipgeolocation location provider")
 	}
 
 	if config.LocationProviderIsEnabled("ipapi") {
 		provider := location.NewIPAPIProvider(log)
 		providers = append(providers, provider)
+		log.Info("Configured ipapi location provider")
 	}
 
 	if config.LocationProviderIsEnabled("file") {
@@ -212,11 +220,13 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 			return nil, err
 		}
 		providers = append(providers, provider)
+		log.Info("Configured file location provider", zap.String("path", config.FileLocationProvider.Path))
 	}
 
 	if config.LocationProviderIsEnabled("random") {
 		provider := location.NewRandomProvider()
 		providers = append(providers, provider)
+		log.Info("Configured random location provider")
 	}
 
 	return location.NewProviderSet(providers, log), nil
