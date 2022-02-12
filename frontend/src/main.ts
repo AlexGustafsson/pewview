@@ -51,7 +51,6 @@ async function main() {
   const DebugUI = (await import("./rendering/debug-ui")).default;
   const ui = new DebugUI();
 
-
   // Fetch data
   const client = new Client(import.meta.env.VITE_API_ENDPOINT);
   let bucket: Bucket

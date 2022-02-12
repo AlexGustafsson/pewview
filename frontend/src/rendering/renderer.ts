@@ -173,11 +173,10 @@ export default class Renderer extends EventEmitter {
     const deltaTime = this.clock.getDelta();
     this.fps = 1 / deltaTime;
 
-    if (!this.render)
-      return;
-
-    this.renderer.render(this.scene, this.scene.camera);
-    this.scene.update(deltaTime);
+    if (this.render) {
+      this.renderer.render(this.scene, this.scene.camera);
+      this.scene.update(deltaTime);
+    }
 
     if (this.isRunning)
       requestAnimationFrame(this.update);
