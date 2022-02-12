@@ -56,20 +56,23 @@ async function main() {
   const DebugUI = (await import('./rendering/debug-ui')).default
   const ui = new DebugUI()
 
+  const Controls = (await import('./rendering/controls')).default
+
   // Fetch data
   const client = new Client(import.meta.env.VITE_API_ENDPOINT)
-  let bucket: Bucket
   try {
+    Controls.data.bucket = await client.fetchLatestBucket()
+
     // If it succeeds, continously fetch data
-    bucket = await client.fetchLatestBucket()
     setInterval(async () => {
-      bucket = await client.fetchLatestBucket()
+      // TODO: get interval from the first bucket instead of hard coding it?
+      Controls.data.bucket = await client.fetchLatestBucket()
     }, 15000)
   } catch (error) {
     // If it fails, fetch the fallback
     console.error(error)
     console.log('Failed to fetch data, using fallback')
-    bucket = await client.fetchFallback()
+    Controls.data.bucket = await client.fetchFallback()
   }
   console.log(`First data received after ${performance.now() - beforeLoad}ms`)
 }

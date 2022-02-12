@@ -1,3 +1,4 @@
+import { Bucket } from '../api'
 import EventEmitter from '../event-emitter'
 
 type Controls = {
@@ -17,6 +18,9 @@ type Controls = {
     rotationX: number
     rotationY: number
   }
+  data: {
+    bucket: Bucket | null
+  }
 }
 
 const controls: Controls = {
@@ -35,6 +39,9 @@ const controls: Controls = {
   view: {
     rotationX: 17,
     rotationY: 263,
+  },
+  data: {
+    bucket: null,
   },
 }
 

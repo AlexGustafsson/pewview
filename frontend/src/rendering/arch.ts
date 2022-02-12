@@ -32,9 +32,12 @@ export function getSplineFromCoords(
     globeRadius,
   )
 
-  const distance = startPoint.distanceTo(endPoint)
-  const altitude =
-    distance > 1.85 * globeRadius ? 20 : distance > 1.4 * globeRadius ? 10 : 3
+  const distance = startPoint.distanceTo(endPoint) / globeRadius
+  let altitude = 15
+  if (distance < 0.8) altitude = 5
+  else if (distance < 1.2) altitude = 8
+  else if (distance < 1.5) altitude = 10
+  console.log(distance, altitude)
 
   const interpolate = geoInterpolate(
     [source.longitude, source.latitude],

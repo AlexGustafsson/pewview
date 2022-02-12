@@ -15,6 +15,7 @@ import Stars from './stars'
 
 import WORLD_MAP from '../../static/map.png'
 
+import type { Theme } from './theme'
 import { DefaultTheme } from './theme'
 import Halo from './halo'
 import Globe from './globe'
@@ -22,7 +23,7 @@ import WorldMap from './world-map'
 import { events as controlEvents } from './controls'
 import Arch from './arch'
 
-import PositionsOfInterest from './poi'
+import { Bucket } from '../api'
 
 const GLOBE_RADIUS = 25
 const WORLD_MAP_OFFSET = 0
@@ -32,6 +33,8 @@ type ResolveFunction = (value: void | PromiseLike<void>) => void
 export class Scene extends ThreeScene {
   globeContainer: Group
   staticContainer: Group
+
+  theme: Theme
 
   camera: PerspectiveCamera
 
@@ -58,7 +61,7 @@ export class Scene extends ThreeScene {
     this.staticContainer = new Group()
     this.add(this.staticContainer)
 
-    const theme = DefaultTheme
+    this.theme = DefaultTheme
 
     // Camera
     this.camera = new PerspectiveCamera(10, 1, 170, 260)
@@ -68,7 +71,7 @@ export class Scene extends ThreeScene {
     this.globe = new Globe({
       radius: radius,
       detail: 55,
-      theme,
+      theme: this.theme,
       origin: new Vector3(0, 0, 0),
     })
     this.globe.mount(this.globeContainer)
@@ -97,19 +100,11 @@ export class Scene extends ThreeScene {
     this.stars.mount(this.staticContainer)
     this.stars.animate = true
 
-    this.halo = new Halo(radius, theme)
+    this.halo = new Halo(radius, this.theme)
     this.halo.mount(this.staticContainer)
 
     // Always let the update loop access 'this'
     this.update = this.update.bind(this)
-
-    // Add some archs
-    for (let i = 0; i < PositionsOfInterest.length - 1; i++) {
-      const start = PositionsOfInterest[i]
-      const end = PositionsOfInterest[i + 1]
-      const arch = new Arch(start, end, radius, theme.archs.negative)
-      arch.mount(this.globeContainer)
-    }
   }
 
   async init() {
@@ -169,6 +164,18 @@ export class Scene extends ThreeScene {
             this.globeContainer.rotation.z,
           )
           break
+        case 'data.bucket':
+          const bucket = value as Bucket
+          for (const connection of bucket.connections) {
+            const arch = new Arch(
+              connection.source,
+              connection.destination,
+              radius,
+              this.theme.archs.negative,
+            )
+
+            arch.mount(this.globeContainer)
+          }
       }
     })
   }
