@@ -1,4 +1,4 @@
-type ThemeColors = {
+export interface Theme {
   // The background color controls the clear color
   background: number
   globe: {
@@ -13,22 +13,24 @@ type ThemeColors = {
     // The glow color controls the halo's main color
     glow: number
   }
+  archs: {
+    negative: number
+    positive: number
+  }
 }
 
-export default class Theme {
-  colors: ThemeColors
-
-  constructor() {
-    this.colors = {
-      background: 0x040d21,
-      globe: {
-        frontHighlight: 0x27367d,
-        water: 0x171634,
-        highlight: 0x517966,
-      },
-      halo: {
-        glow: 0x1c2462,
-      },
-    }
-  }
+export const DefaultTheme: Theme = {
+  background: 0x040d21,
+  globe: {
+    frontHighlight: 0x27367d,
+    water: 0x171634,
+    highlight: 0x517966,
+  },
+  halo: {
+    glow: 0x1c2462,
+  },
+  archs: {
+    negative: 0xde2c70,
+    positive: 0x2cdeaf,
+  },
 }

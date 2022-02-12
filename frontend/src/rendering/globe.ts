@@ -7,7 +7,7 @@ import {
   Color,
 } from 'three'
 
-import type Theme from './theme'
+import type { Theme } from './theme'
 
 import GLOBE_FRAGMENT_SHADER from './shaders/globe.frag?raw'
 import GLOBE_VERTEX_SHADER from './shaders/globe.vert?raw'
@@ -58,7 +58,7 @@ export default class Globe implements Entity {
     this.updateSize(radius, 1)
 
     this.material = new MeshStandardMaterial({
-      color: theme.colors.globe.water,
+      color: theme.globe.water,
       metalness: 0,
       roughness: 0.9,
     })
@@ -87,11 +87,11 @@ export default class Globe implements Entity {
       },
       highlightColor: {
         type: 'c',
-        value: new Color(theme.colors.globe.highlight),
+        value: new Color(theme.globe.highlight),
       },
       frontHighlightColor: {
         type: 'c',
-        value: new Color(theme.colors.globe.frontHighlight),
+        value: new Color(theme.globe.frontHighlight),
       },
     }
     this.material.onBeforeCompile = (shader, _renderer) => {

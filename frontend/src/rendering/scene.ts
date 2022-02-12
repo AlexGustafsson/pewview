@@ -9,19 +9,20 @@ import {
   Vector3,
   Euler,
 } from 'three'
-import { Entity } from './entity'
 import { IS_MOBILE } from './utils'
 
-import Controller from './controller'
 import Stars from './stars'
 
 import WORLD_MAP from '../../static/map.png'
 
-import Theme from './theme'
+import { DefaultTheme } from './theme'
 import Halo from './halo'
 import Globe from './globe'
 import WorldMap from './world-map'
 import { events as controlEvents } from './controls'
+import Arch from './arch'
+
+import PositionsOfInterest from './poi'
 
 const GLOBE_RADIUS = 25
 const WORLD_MAP_OFFSET = 0
@@ -31,8 +32,6 @@ type ResolveFunction = (value: void | PromiseLike<void>) => void
 export class Scene extends ThreeScene {
   globeContainer: Group
   staticContainer: Group
-
-  inputController: Controller | null = null
 
   camera: PerspectiveCamera
 
@@ -59,7 +58,7 @@ export class Scene extends ThreeScene {
     this.staticContainer = new Group()
     this.add(this.staticContainer)
 
-    const theme = new Theme()
+    const theme = DefaultTheme
 
     // Camera
     this.camera = new PerspectiveCamera(10, 1, 170, 260)
@@ -101,11 +100,16 @@ export class Scene extends ThreeScene {
     this.halo = new Halo(radius, theme)
     this.halo.mount(this.staticContainer)
 
-    // Setup input controller (done when first mounted)
-    this.inputController = null
-
     // Always let the update loop access 'this'
     this.update = this.update.bind(this)
+
+    // Add some archs
+    for (let i = 0; i < PositionsOfInterest.length - 1; i++) {
+      const start = PositionsOfInterest[i]
+      const end = PositionsOfInterest[i + 1]
+      const arch = new Arch(start, end, radius, theme.archs.negative)
+      arch.mount(this.globeContainer)
+    }
   }
 
   async init() {
@@ -219,7 +223,6 @@ export class Scene extends ThreeScene {
   }
 
   update(deltaTime: number) {
-    if (this.inputController) this.inputController.update(deltaTime)
     // if (this.debugUI)
     //   this.debugUI.update(deltaTime);
     if (this.stars) this.stars.update(deltaTime)

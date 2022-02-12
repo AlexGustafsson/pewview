@@ -10,7 +10,7 @@ import { Entity } from './entity'
 
 import HALO_FRAGMENT_SHADER from './shaders/halo.frag?raw'
 import HALO_VERTEX_SHADER from './shaders/halo.vert?raw'
-import type Theme from './theme'
+import type { Theme } from './theme'
 
 export default class Halo implements Entity {
   elapsedTime: number
@@ -55,7 +55,7 @@ export default class Halo implements Entity {
       },
       glowColor: {
         type: 'c',
-        value: new Color(theme.colors.halo.glow),
+        value: new Color(theme.halo.glow),
       },
       viewVector: {
         type: 'v3',

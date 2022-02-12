@@ -25,6 +25,7 @@
     "vite": "^2.8.1"
   },
   "dependencies": {
+    "d3-geo": "^3.0.1",
     "dat.gui": "^0.7.7",
     "solar-calculator": "^0.3.0",
     "three": "^0.137.5"

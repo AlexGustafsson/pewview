@@ -57,3 +57,9 @@ export function getImageData(texture: HTMLImageElement): ImageData {
   ctx.drawImage(texture, 0, 0, texture.width, texture.height)
   return ctx.getImageData(0, 0, texture.width, texture.height)
 }
+
+export function clamp(value: number, min: number, max: number) {
+  if (value <= min) return min
+  if (value >= max) return max
+  return value
+}

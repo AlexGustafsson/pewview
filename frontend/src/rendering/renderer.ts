@@ -1,17 +1,7 @@
-import {
-  PerspectiveCamera,
-  WebGLRenderer,
-  Clock,
-  Group,
-  Vector3,
-  TextureLoader,
-} from 'three'
-import Theme from './theme'
+import { WebGLRenderer, Clock } from 'three'
+import type { Theme } from './theme'
+import { DefaultTheme } from './theme'
 import DebugUI from './debug-ui'
-// import Arch from "./arch"
-import { IS_MOBILE } from './utils'
-import Controller from './controller'
-import Stars from './stars'
 
 import EventEmitter from '../event-emitter'
 import { Scene } from './scene'
@@ -43,7 +33,7 @@ export default class Renderer extends EventEmitter {
   resizeDebouncer: ReturnType<typeof setInterval> | null
   debugUI: DebugUI | null
 
-  constructor({ theme = new Theme(), debug = false }: RendererOptions = {}) {
+  constructor({ theme = DefaultTheme, debug = false }: RendererOptions = {}) {
     super()
     this.element = null
 
@@ -75,16 +65,12 @@ export default class Renderer extends EventEmitter {
       antialias: true,
     })
     this.renderer.setPixelRatio(window.devicePixelRatio || 1)
-    this.renderer.setClearColor(this.theme.colors.background, 1)
+    this.renderer.setClearColor(this.theme.background, 1)
 
     // Scene
 
     // Debugging
     this.debugUI = null
-    // textureLoaded.then(() => {
-    //   this.debugUI = debug ? new DebugUI({ renderer: this }) : null;
-    //   this.updateSize(true);
-    // });
 
     // Timers / debouncers
     this.resizeDebouncer = null
@@ -103,13 +89,6 @@ export default class Renderer extends EventEmitter {
 
     this.element = element
     this.element.appendChild(this.renderer.domElement)
-
-    // this.inputController = new Controller({
-    //   element,
-    //   object: this.orbitContainer,
-    //   objectContainer: this.orbitParentContainer,
-    //   renderer: this
-    // });
 
     window.addEventListener('resize', () => this.updateSize())
     window.addEventListener('orientationchange', () => this.updateSize())
