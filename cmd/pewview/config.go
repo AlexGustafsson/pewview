@@ -47,7 +47,7 @@ type Config struct {
 
 	/// Location providers
 
-	EnabledLocationProviders []string `long:"geo" description:"Enable a location provider. May be used more than once" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file"`
+	EnabledLocationProviders []string `long:"geo" description:"Enable a location provider. May be used more than once" choice:"geolite" choice:"ipgeolocation" choice:"ipapi" choice:"file" choice:"random"`
 
 	GeoLiteLocationProvider struct {
 		Path string `long:"path" description:"Path to GeoLite2-City.mmdb"`
@@ -211,6 +211,11 @@ func (config *Config) LocationProviders(log *zap.Logger) (*location.ProviderSet,
 		if err != nil {
 			return nil, err
 		}
+		providers = append(providers, provider)
+	}
+
+	if config.LocationProviderIsEnabled("random") {
+		provider := location.NewRandomProvider()
 		providers = append(providers, provider)
 	}
 
