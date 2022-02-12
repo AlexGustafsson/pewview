@@ -7,6 +7,7 @@ import {
   SpotLight,
   PerspectiveCamera,
   Vector3,
+  Euler,
 } from "three";
 import { Entity } from "./entity";
 import { IS_MOBILE } from "./utils"
@@ -16,7 +17,6 @@ import Stars from "./stars"
 
 import WORLD_MAP from "../../static/map.png"
 
-import { START_ROTATION } from "./globals"
 import Theme from "./theme";
 import Halo from "./halo";
 import Globe from "./globe";
@@ -92,7 +92,7 @@ export class Scene extends ThreeScene {
     // const rotation = START_ROTATION;
     // const offset = (new Date()).getTimezoneOffset();
     // rotation.y = START_ROTATION.y + Math.PI * (offset / 720);
-    this.globeContainer.rotation.copy(START_ROTATION);
+    this.globeContainer.rotation.copy(new Euler(.3, 4.6, .05));
 
     // Setup stars
     this.stars = new Stars(GLOBE_RADIUS);
@@ -143,6 +143,10 @@ export class Scene extends ThreeScene {
           if (value === true) this.worldMap?.mount(this.globeContainer); else this.worldMap?.unmount(); break;
         case "scene.renderGlobe":
           if (value === true) this.globe?.mount(this.globeContainer); else this.globe?.unmount(); break;
+        case "view.rotationX":
+          this.globeContainer.rotation.set(value * 2 * Math.PI / 360, this.globeContainer.rotation.y, this.globeContainer.rotation.z); break;
+        case "view.rotationY":
+          this.globeContainer.rotation.set(this.globeContainer.rotation.x, value * 2 * Math.PI / 360, this.globeContainer.rotation.z); break;
       }
     });
   }

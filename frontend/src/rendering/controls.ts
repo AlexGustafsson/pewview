@@ -13,6 +13,10 @@ type Controls = {
     renderWorldMap: boolean,
     renderGlobe: boolean,
   },
+  view: {
+    rotationX: number,
+    rotationY: number,
+  },
 }
 
 const controls: Controls = {
@@ -28,6 +32,10 @@ const controls: Controls = {
     renderWorldMap: true,
     renderGlobe: true,
   },
+  view: {
+    rotationX: 17,
+    rotationY: 263,
+  }
 };
 
 export const events = new EventEmitter();
