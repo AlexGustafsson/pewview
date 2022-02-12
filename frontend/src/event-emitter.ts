@@ -1,40 +1,39 @@
-interface EventEmitterCallback { (...parameters: any[]): void }
+interface EventEmitterCallback {
+  (...parameters: any[]): void
+}
 
 export default class EventEmitter {
-  events: {[key: string]: EventEmitterCallback[]};
+  events: { [key: string]: EventEmitterCallback[] }
   constructor() {
-    this.events = {};
+    this.events = {}
   }
 
   on(event: string, listener: EventEmitterCallback) {
-    if (!this.events[event])
-      this.events[event] = [];
+    if (!this.events[event]) this.events[event] = []
 
-    this.events[event].push(listener);
+    this.events[event].push(listener)
   }
 
   removeListener(event: string, listener: EventEmitterCallback) {
     if (this.events[event]) {
       const index = this.events[event].indexOf(listener)
-      if (index > -1)
-        this.events[event].splice(index, 1);
+      if (index > -1) this.events[event].splice(index, 1)
     }
   }
 
   emit(event: string, ...parameters: any[]) {
     if (this.events[event]) {
-      const listeners = this.events[event].slice();
+      const listeners = this.events[event].slice()
 
-      for (let listener of listeners)
-        listener.apply(this, parameters);
+      for (let listener of listeners) listener.apply(this, parameters)
     }
   }
 
   once(event: string, listener: EventEmitterCallback) {
     const handler = (...parameters: any[]) => {
-      this.removeListener(event, handler);
-      listener.apply(this, parameters);
+      this.removeListener(event, handler)
+      listener.apply(this, parameters)
     }
-    this.on(event, handler);
+    this.on(event, handler)
   }
 }

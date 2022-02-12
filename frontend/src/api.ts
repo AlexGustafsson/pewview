@@ -30,30 +30,34 @@ export type APIError = {
 }
 
 export default class Client {
-  public endpoint: string;
+  public endpoint: string
 
   constructor(endpoint: string) {
-    this.endpoint = endpoint;
+    this.endpoint = endpoint
   }
 
   public async fetchLatestBucket(): Promise<Bucket> {
-    const response = await fetch(`${this.endpoint}/buckets/latest`);
-    const data = await response.json();
+    const response = await fetch(`${this.endpoint}/buckets/latest`)
+    const data = await response.json()
     if (!response.ok) {
-      const error = data as APIError;
-      throw new Error(`failed to fetch latest bucket: ${error.code}, ${error.error}`);
+      const error = data as APIError
+      throw new Error(
+        `failed to fetch latest bucket: ${error.code}, ${error.error}`,
+      )
     }
 
-    const bucket = data as Bucket;
+    const bucket = data as Bucket
     // When received from the API, the duration is a string
-    bucket.origin = new Date(bucket.origin);
+    bucket.origin = new Date(bucket.origin)
     return bucket
   }
 
   public async fetchFallback(): Promise<Bucket> {
-    const bucket = JSON.parse((await import("../static/fallback.json?raw")).default) as Bucket
+    const bucket = JSON.parse(
+      (await import('../static/fallback.json?raw')).default,
+    ) as Bucket
     // When received from the API, the duration is a string
-    bucket.origin = new Date(bucket.origin);
+    bucket.origin = new Date(bucket.origin)
     return bucket
   }
 }

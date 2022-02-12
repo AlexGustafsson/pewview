@@ -1,4 +1,4 @@
 type Uniform<T> = {
-  type: string,
+  type: string
   value: T
-};
+}

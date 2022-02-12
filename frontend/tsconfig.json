@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -21,8 +17,5 @@
     "rootDir": "src",
     "sourceMap": true
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.d.ts"]
 }

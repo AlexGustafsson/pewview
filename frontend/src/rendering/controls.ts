@@ -1,22 +1,22 @@
-import EventEmitter from "../event-emitter";
+import EventEmitter from '../event-emitter'
 
 type Controls = {
   rendering: {
-    enable: boolean,
-    fps: number,
-  },
+    enable: boolean
+    fps: number
+  }
   scene: {
-    renderStars: boolean,
-    animateStars: boolean,
-    renderHalo: boolean,
-    animateHalo: boolean,
-    renderWorldMap: boolean,
-    renderGlobe: boolean,
-  },
+    renderStars: boolean
+    animateStars: boolean
+    renderHalo: boolean
+    animateHalo: boolean
+    renderWorldMap: boolean
+    renderGlobe: boolean
+  }
   view: {
-    rotationX: number,
-    rotationY: number,
-  },
+    rotationX: number
+    rotationY: number
+  }
 }
 
 const controls: Controls = {
@@ -35,46 +35,46 @@ const controls: Controls = {
   view: {
     rotationX: 17,
     rotationY: 263,
-  }
-};
+  },
+}
 
-export const events = new EventEmitter();
+export const events = new EventEmitter()
 
 class Handler {
   parents: string[]
 
   constructor(parents: string[] = []) {
-    this.parents = parents;
+    this.parents = parents
   }
 
   get(target: Object, key: string): any {
     if (key in target) {
-      const newTarget = target[key as keyof typeof target];
+      const newTarget = target[key as keyof typeof target]
       if (newTarget instanceof Object) {
-        const handler = new Handler([...this.parents, key]);
-        return new Proxy(newTarget, handler);
+        const handler = new Handler([...this.parents, key])
+        return new Proxy(newTarget, handler)
       }
 
-      return newTarget;
+      return newTarget
     }
 
-    return undefined;
+    return undefined
   }
 
   set(target: Object, key: string, value: any) {
     if (key in target) {
-      target[key as keyof typeof target] = value;
-      events.emit("change", this.path(key), value);
-      return true;
+      target[key as keyof typeof target] = value
+      events.emit('change', this.path(key), value)
+      return true
     }
 
-    return false;
+    return false
   }
 
   path(key: string): string {
-    return [...this.parents, key].join(".");
+    return [...this.parents, key].join('.')
   }
 }
 
-const proxy = new Proxy(controls, new Handler()) as Controls;
-export default proxy;
+const proxy = new Proxy(controls, new Handler()) as Controls
+export default proxy

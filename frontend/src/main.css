@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   background-color: black;
   width: 100vw;
@@ -31,7 +32,8 @@ html, body {
   padding: 0;
   font-size: 72px;
   color: white;
-  font-family: -apple-system, BlinkMacSystemFont, “Roboto”, “Droid Sans”, “Helvetica Neue”, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, “Roboto”, “Droid Sans”,
+    “Helvetica Neue”, Helvetica, Arial, sans-serif;
   transition: 0.5s transform;
 }
 
@@ -40,5 +42,5 @@ html, body {
 }
 
 #loading-overlay.hidden > h1 {
-  transform: scale(1.5)
+  transform: scale(1.5);
 }
