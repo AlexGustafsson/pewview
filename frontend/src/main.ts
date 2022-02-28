@@ -51,6 +51,8 @@ async function main() {
     loadingOverlay.classList.add('hidden')
   }
 
+  const hudTime = document.getElementById('time')!
+
   // Mount debug UI
 
   const DebugUI = (await import('./rendering/debug-ui')).default
@@ -61,18 +63,23 @@ async function main() {
   // Fetch data
   const client = new Client(import.meta.env.VITE_API_ENDPOINT)
   try {
-    Controls.data.bucket = await client.fetchLatestBucket()
+    const bucket = await client.fetchLatestBucket()
+    Controls.data.bucket = bucket
+    hudTime.innerText = bucket.origin.toLocaleString()
 
     // If it succeeds, continously fetch data
     setInterval(async () => {
       // TODO: get interval from the first bucket instead of hard coding it?
-      Controls.data.bucket = await client.fetchLatestBucket()
+      const bucket = await client.fetchLatestBucket()
+      Controls.data.bucket = bucket
+      hudTime.innerText = bucket.origin.toLocaleString()
     }, 15000)
   } catch (error) {
     // If it fails, fetch the fallback
     console.error(error)
     console.log('Failed to fetch data, using fallback')
     Controls.data.bucket = await client.fetchFallback()
+    hudTime.parentElement?.removeChild(hudTime)
   }
   console.log(`First data received after ${performance.now() - beforeLoad}ms`)
 }

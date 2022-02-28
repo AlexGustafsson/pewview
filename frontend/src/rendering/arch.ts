@@ -38,7 +38,6 @@ export function getSplineFromCoords(
   if (distance < 0.8) altitude = 5
   else if (distance < 1.2) altitude = 8
   else if (distance < 1.5) altitude = 10
-  console.log(distance, altitude)
 
   const interpolate = geoInterpolate(
     [source.longitude, source.latitude],

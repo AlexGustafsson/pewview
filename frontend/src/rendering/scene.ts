@@ -177,6 +177,7 @@ export class Scene extends ThreeScene {
               this.theme.archs.negative,
             )
 
+            // TODO: Animate the traffic accurately with when in time it occured
             arch.mount(this.globeContainer)
             // Number of segments per second - a segment is roughly 60 segments,
             // a third of that if you divide by radial segments
