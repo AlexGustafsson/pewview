@@ -10,6 +10,7 @@ import { clamp } from 'three/src/math/MathUtils'
 import { Entity } from './entity'
 import { coordinatesToPoint } from './utils'
 import { geoInterpolate } from 'd3-geo'
+import { Easing } from './easings'
 
 interface Coordinate {
   latitude: number
@@ -62,6 +63,9 @@ export function getSplineFromCoords(
 export default class Arch implements Entity {
   private mesh: Group
   private parent: Group | null = null
+  private segments: number
+  private tube: TubeBufferGeometry
+  private animation: Easing | null = null
 
   constructor(
     source: Coordinate,
@@ -79,9 +83,15 @@ export default class Arch implements Entity {
     })
 
     const spline = getSplineFromCoords(source, destination, globeRadius)
-    const segments = Math.round(20 + spline.getLength())
-    const tube = new TubeBufferGeometry(spline, segments, 0.2, 3, false)
-    const tubeMesh = new Mesh(tube, material)
+    // Add some extra segments to soften the curves and animation
+    this.segments = Math.round(20 + spline.getLength())
+    this.tube = new TubeBufferGeometry(spline, this.segments, 0.2, 3, false)
+    this.tube.drawRange = {
+      start: 0,
+      count: 0,
+    }
+
+    const tubeMesh = new Mesh(this.tube, material)
     this.mesh.add(tubeMesh)
   }
 
@@ -94,5 +104,23 @@ export default class Arch implements Entity {
     this.parent!.remove(this.mesh)
   }
 
-  update(deltaTime: number): void {}
+  update(deltaTime: number): void {
+    if (this.animation) {
+      this.animation.update(deltaTime)
+      if (this.animation.active) {
+        this.tube.setDrawRange(
+          0,
+          Math.round(this.segments * this.animation.progress * 21) *
+            this.tube.parameters.radialSegments,
+        )
+      }
+    }
+  }
+
+  animate(offset: number, speed: number) {
+    setTimeout(() => {
+      const duration = Math.round(this.segments / speed)
+      this.animation = new Easing(duration)
+    }, offset)
+  }
 }

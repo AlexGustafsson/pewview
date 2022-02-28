@@ -49,6 +49,7 @@ export class Scene extends ThreeScene {
   globe: Globe | null = null
   halo: Halo | null = null
   worldMap: WorldMap | null = null
+  archs: Arch[] = []
 
   constructor() {
     super()
@@ -166,7 +167,9 @@ export class Scene extends ThreeScene {
           break
         case 'data.bucket':
           const bucket = value as Bucket
-          for (const connection of bucket.connections) {
+          for (const x of this.archs) x.unmount()
+          for (let i = 0; i < bucket.connections.length; i++) {
+            const connection = bucket.connections[i]
             const arch = new Arch(
               connection.source,
               connection.destination,
@@ -175,6 +178,17 @@ export class Scene extends ThreeScene {
             )
 
             arch.mount(this.globeContainer)
+            // Number of segments per second - a segment is roughly 60 segments,
+            // a third of that if you divide by radial segments
+            const speed = 20
+            // Offset before the animation starts in milliseconds
+            const offset =
+              (bucket.duration / bucket.connections.length) *
+              i *
+              1000 *
+              Math.random()
+            arch.animate(offset, speed)
+            this.archs.push(arch)
           }
       }
     })
@@ -235,5 +249,6 @@ export class Scene extends ThreeScene {
     if (this.stars) this.stars.update(deltaTime)
     if (this.globe) this.globe.update(deltaTime)
     if (this.halo) this.halo.update(deltaTime)
+    for (const arch of this.archs) arch.update(deltaTime)
   }
 }
