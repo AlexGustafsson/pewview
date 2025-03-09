@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+@layer theme, base, components, utilities;
+
+@theme {
+  --shadow-around: 0 0 2px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.28);
+}
+
+@layer base {
+  html {
+    -webkit-touch-callout: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom: env(safe-area-inset-bottom);
+    font-family: system, -apple-system, '.SFNSText-Regular', 'San Francisco',
+      'Roboto', 'Segoe UI', 'Helvetica Neue', 'Lucida Grande', sans-serif;
+  }
+
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    color: #dddddd;
+    background-color: #121212;
+  }
+}
+
+@layer components {
+  /**/
+}
