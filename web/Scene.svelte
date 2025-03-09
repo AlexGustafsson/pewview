@@ -1,36 +1,31 @@
 <script lang="ts">
-import { T, useTask } from '@threlte/core'
-import { interactivity } from '@threlte/extras'
-import { Spring } from 'svelte/motion'
-interactivity()
-const scale = new Spring(1)
-let rotation = 0
-useTask((delta) => {
-  rotation += delta
-})
+  import { T } from '@threlte/core'
+  import { Grid } from '@threlte/extras'
+  import { Stars, useSuspense } from '@threlte/extras'
+  import Globe from './Globe.svelte';
+  import Map from './Map.svelte';
+
+  type Props = {
+    center: [number, number, number]
+  }
+
+  let { center }: Props = $props()
 </script>
 
-<T.PerspectiveCamera
-  makeDefault
-  position={[10, 10, 10]}
-  oncreate={(ref) => {
-    ref.lookAt(0, 1, 0)
-  }}
+<T.AxesHelper
+  args={[10]}
+  renderOrder={1}
 />
 
-<T.DirectionalLight position={[0, 10, 10]} />
+<Grid
+  sectionSize={0}
+  cellColor="#eee"
+/>
 
-<T.Mesh
-  rotation.y={rotation}
-  position.y={1}
-  scale={scale.current}
-  onpointerenter={() => {
-    scale.target = 1.1
-  }}
-  onpointerleave={() => {
-    scale.target = 1
-  }}
->
-  <T.SphereGeometry args={[5, 64, 64]} />
-  <T.MeshStandardMaterial color="blue" />
-</T.Mesh>
+<T.DirectionalLight position={[0, 10, 10]} color="#fffaf5" />
+
+<Stars />
+
+<!-- <Globe center={center} /> -->
+
+<Map />
