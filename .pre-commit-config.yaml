@@ -1,0 +1,15 @@
+---
+repos:
+  - repo: local
+    hooks:
+      - id: biome
+        name: Lint code using Biome
+        entry: yarn exec biome ci --no-errors-on-unmatched
+        language: system
+        types: [text]
+      - id: prettier
+        name: Lint markdown using Prettier
+        entry: yarn exec prettier --check
+        language: system
+        types: [text]
+        files: \.(md|yml|yaml)$
